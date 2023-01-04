@@ -1,24 +1,7 @@
 use crate::helpers::*;
-use rand::{
-    distributions::{Distribution, Uniform},
-    rngs::SmallRng,
-    SeedableRng,
-};
 
 pub fn two_opt_random(nodes: &Vec<Node>, seed: Option<u64>) -> Vec<Node> {
-    let mut nodes_remaining = nodes.clone();
-    let mut starting_path = vec![];
-    let mut rng = match seed {
-        Some(seed) => SmallRng::seed_from_u64(seed),
-        None => SmallRng::from_entropy(),
-    };
-    while !nodes_remaining.is_empty() {
-        let between = Uniform::from(0..nodes_remaining.len());
-        let i = between.sample(&mut rng);
-        starting_path.push(nodes_remaining[i].clone());
-        nodes_remaining.remove(i);
-    }
-    println!("Starting path : {:?}", starting_path);
+    let mut starting_path = random_solution(nodes, seed);
     return two_opt(&starting_path);
 }
 
