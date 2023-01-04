@@ -1,8 +1,8 @@
-use crate::helpers::{path_len, random_solution};
+use crate::helpers::{tour_len, random_solution};
 
 pub fn hillclimb(distance_matrix: &Vec<Vec<i32>>, seed: Option<u64>) -> Vec<u32> {
     let mut current_tour = random_solution(distance_matrix.len() as u32, seed);
-    let mut current_len = path_len(&current_tour, distance_matrix);
+    let mut current_len = tour_len(&current_tour, distance_matrix);
 
     loop {
         let neighbors = get_neighbors(&current_tour);
@@ -36,11 +36,11 @@ fn get_best_neighbor(
     neighbors: &Vec<Vec<u32>>,
     distance_matrix: &Vec<Vec<i32>>,
 ) -> (Vec<u32>, i32) {
-    let mut best_len = path_len(&neighbors[0], distance_matrix);
+    let mut best_len = tour_len(&neighbors[0], distance_matrix);
     let mut best_neighbor_index = 0;
 
     for (i, neighbor) in neighbors[1..].iter().enumerate() {
-        let len = path_len(neighbor, distance_matrix);
+        let len = tour_len(neighbor, distance_matrix);
         if len < best_len {
             best_len = len;
             best_neighbor_index = i+1;

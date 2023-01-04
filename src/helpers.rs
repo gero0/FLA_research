@@ -15,7 +15,7 @@ pub fn dist(n1: &Node, n2: &Node) -> i32 {
     len as i32
 }
 
-pub fn path_len(path: &Vec<u32>, distance_matrix: &Vec<Vec<i32>>) -> i32 {
+pub fn tour_len(path: &Vec<u32>, distance_matrix: &Vec<Vec<i32>>) -> i32 {
     let len: i32 = path
         .windows(2)
         .map(|w| distance_matrix[w[0] as usize][w[1] as usize])
