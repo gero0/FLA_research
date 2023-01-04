@@ -14,7 +14,7 @@ pub fn parse_tsp_file(path: &str) -> Result<TspFile, Box<dyn Error>> {
     let mut dimension = None;
     let mut name = None;
 
-    while let Some(line) = lines.next() {
+    for line in lines.by_ref() {
         let line = line.trim();
         if line == "NODE_COORD_SECTION" {
             break;
@@ -37,7 +37,7 @@ pub fn parse_tsp_file(path: &str) -> Result<TspFile, Box<dyn Error>> {
     let mut nodes = vec![];
 
     //parse nodes
-    while let Some(line) = lines.next() {
+    for line in lines {
         let line = line.trim();
         if line == "EOF" {
             break;
@@ -46,7 +46,7 @@ pub fn parse_tsp_file(path: &str) -> Result<TspFile, Box<dyn Error>> {
         let id: u32 = tokens[0].trim().parse()?;
         let x: f32 = tokens[1].trim().parse()?;
         let y: f32 = tokens[2].trim().parse()?;
-        nodes.push(Node { id, x, y });
+        nodes.push(Node { id: id-1, x, y });
     }
 
     Ok(TspFile {
@@ -56,11 +56,11 @@ pub fn parse_tsp_file(path: &str) -> Result<TspFile, Box<dyn Error>> {
     })
 }
 
-pub fn parse_tour_file(path: &str, nodes: &Vec<Node>) -> Result<Vec<Node>, Box<dyn Error>> {
+pub fn parse_tour_file(path: &str) -> Result<Vec<u32>, Box<dyn Error>> {
     let file = fs::read_to_string(path).unwrap();
     let mut lines = file.lines();
 
-    while let Some(line) = lines.next() {
+    for line in lines.by_ref() {
         let line = line.trim();
         if line == "TOUR_SECTION" {
             break;
@@ -70,14 +70,13 @@ pub fn parse_tour_file(path: &str, nodes: &Vec<Node>) -> Result<Vec<Node>, Box<d
     let mut path = vec![];
 
     //parse path
-    while let Some(line) = lines.next() {
+    for line in lines {
         let line = line.trim();
         if line == "-1" {
             break;
         }
         let id: u32 = line.parse()?;
-        let node = nodes.iter().find(|e| e.id == id).ok_or(std::fmt::Error)?;
-        path.push((*node).clone());
+        path.push(id - 1);
     }
 
     Ok(path)
