@@ -37,7 +37,7 @@ pub fn parse_tsp_file(path: &str) -> Result<TspFile, Box<dyn Error>> {
     let mut nodes = vec![];
 
     //parse nodes
-    for line in lines {
+    for (i, line) in lines.enumerate() {
         let line = line.trim();
         if line == "EOF" {
             break;
@@ -46,7 +46,7 @@ pub fn parse_tsp_file(path: &str) -> Result<TspFile, Box<dyn Error>> {
         let id: u32 = tokens[0].trim().parse()?;
         let x: f32 = tokens[1].trim().parse()?;
         let y: f32 = tokens[2].trim().parse()?;
-        nodes.push(Node { id: id-1, x, y });
+        nodes.push(Node { pos: i, id, x, y });
     }
 
     Ok(TspFile {

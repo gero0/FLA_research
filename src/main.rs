@@ -15,7 +15,7 @@ use std::{
 fn main() {
     let file = parse_tsp_file("./data/berlin52.tsp").unwrap();
 
-    const SAMPLE_COUNT: usize = 100000;
+    const SAMPLE_COUNT: usize = 1000;
     let thread_count: usize = available_parallelism().unwrap().get();
     println!("{} threads available", thread_count);
     let samples_per_thread = SAMPLE_COUNT / thread_count;
