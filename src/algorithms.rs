@@ -62,7 +62,8 @@ impl<'a> SnowballSampler<'a> {
         for _ in 0..self.walk_len {
             self.snowball(self.depth, &c_solution, &mut solutions, &mut edges);
             visited_nodes.insert(c_solution.clone());
-            (c_solution, c_len) = self.random_walk_step(&c_solution, &edges, &visited_nodes);
+            (c_solution, c_len) =
+                self.random_walk_step(&c_solution, &mut solutions, &edges, &visited_nodes);
         }
 
         (solutions, edges)
@@ -98,6 +99,7 @@ impl<'a> SnowballSampler<'a> {
     fn random_walk_step(
         &mut self,
         c_solution: &Vec<usize>,
+        solutions: &mut FxHashMap<Vec<usize>, i32>,
         edges: &FxHashMap<(Vec<usize>, Vec<usize>), i32>,
         visited_nodes: &FxHashSet<Vec<usize>>,
     ) -> (Vec<usize>, i32) {
@@ -110,7 +112,9 @@ impl<'a> SnowballSampler<'a> {
 
         if neighbors.is_empty() {
             let random = random_solution(self.distance_matrix.len(), Some(self.rng.next_u64()));
-            return (self.hillclimb)(&random, self.distance_matrix);
+            let (solution, len) = (self.hillclimb)(&random, self.distance_matrix);
+            solutions.insert(solution.clone(), len);
+            return (solution, len);
         }
 
         let between = Uniform::from(0..neighbors.len());
