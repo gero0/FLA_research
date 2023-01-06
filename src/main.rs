@@ -2,7 +2,7 @@ pub mod algorithms;
 pub mod helpers;
 pub mod parsers;
 
-use crate::algorithms::{SnowballSampler, hillclimb};
+use crate::algorithms::{SnowballSampler, hillclimb, two_opt::two_opt};
 use helpers::*;
 use parsers::*;
 
@@ -13,8 +13,8 @@ use std::{
 };
 
 fn main() {
-    // let file = parse_tsp_file("./data/berlin52.tsp").unwrap();
-    let file = parse_tsp_file("./data/ulysses16.tsp").unwrap();
+    let file = parse_tsp_file("./data/berlin52.tsp").unwrap();
+    // let file = parse_tsp_file("./data/ulysses16.tsp").unwrap();
 
     // const SAMPLE_COUNT: usize = 1000;
     // let thread_count: usize = available_parallelism().unwrap().get();
@@ -46,7 +46,7 @@ fn main() {
     // }
 
     // println!("{}", local_minimums.lock().unwrap().len());
-    let mut snowball_sampler = SnowballSampler::new(1, 5, 3, 2, &distance_matrix, &hillclimb::hillclimb, Some(2000));
+    let mut snowball_sampler = SnowballSampler::new(1, 5, 3, 2, &distance_matrix, &two_opt, Some(2000));
     let (nodes, edges) = snowball_sampler.sample();
 
     println!("{:?}", nodes);
