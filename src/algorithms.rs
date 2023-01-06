@@ -1,13 +1,13 @@
 pub mod hillclimb;
 pub mod two_opt;
 
-use crate::helpers::tour_len;
+use crate::helpers::{random_solution, tour_len};
 
-use self::hillclimb::{hillclimb, hillclimb_rand};
-
+use rand::{distributions::Uniform, prelude::Distribution, RngCore, SeedableRng};
 use rand_chacha::{self, ChaCha8Rng};
-use rand::{distributions::Uniform, prelude::Distribution, SeedableRng, RngCore};
-use rustc_hash::{FxHashSet, FxHashMap};
+use rustc_hash::{FxHashMap, FxHashSet};
+
+pub type HillclimbFunction = dyn Fn(&Vec<usize>, &Vec<Vec<i32>>) -> (Vec<usize>, i32);
 
 pub struct SnowballSampler<'a> {
     walk_len: u32,
@@ -16,6 +16,7 @@ pub struct SnowballSampler<'a> {
     mut_d: usize,
     rng: ChaCha8Rng,
     distance_matrix: &'a Vec<Vec<i32>>,
+    hillclimb: &'a HillclimbFunction,
 }
 
 impl<'a> SnowballSampler<'a> {
@@ -25,6 +26,7 @@ impl<'a> SnowballSampler<'a> {
         depth: u32,
         mut_d: usize,
         distance_matrix: &'a Vec<Vec<i32>>,
+        hillclimb_function: &'a HillclimbFunction,
         seed: Option<u64>,
     ) -> Self {
         let rng = match seed {
@@ -39,6 +41,7 @@ impl<'a> SnowballSampler<'a> {
             mut_d,
             rng,
             distance_matrix,
+            hillclimb: hillclimb_function,
         }
     }
 
@@ -52,19 +55,14 @@ impl<'a> SnowballSampler<'a> {
         let mut edges = FxHashMap::default();
         let mut visited_nodes = FxHashSet::default();
 
-        let (mut c_solution, mut c_len) = hillclimb_rand(self.distance_matrix, Some(self.rng.next_u64()));
+        let start = random_solution(self.distance_matrix.len(), Some(self.rng.next_u64()));
+        let (mut c_solution, mut c_len) = (self.hillclimb)(&start, self.distance_matrix);
         solutions.insert(c_solution.clone(), c_len);
 
         for _ in 0..self.walk_len {
-            self.snowball(
-                self.depth,
-                &c_solution,
-                &mut solutions,
-                &mut edges,
-            );
+            self.snowball(self.depth, &c_solution, &mut solutions, &mut edges);
             visited_nodes.insert(c_solution.clone());
-            (c_solution, c_len) =
-                self.random_walk_step(&c_solution, &edges, &visited_nodes);
+            (c_solution, c_len) = self.random_walk_step(&c_solution, &edges, &visited_nodes);
         }
 
         (solutions, edges)
@@ -83,7 +81,7 @@ impl<'a> SnowballSampler<'a> {
 
         for _ in 0..self.n_edges {
             let random_solution = mutate(c_solution, self.mut_d, &mut self.rng);
-            let (solution, len) = hillclimb(&random_solution, self.distance_matrix);
+            let (solution, len) = (self.hillclimb)(&random_solution, self.distance_matrix);
             solutions.insert(solution.clone(), len);
             match edges.get_mut(&(c_solution.to_owned(), solution.clone())) {
                 Some(weight) => {
@@ -91,12 +89,7 @@ impl<'a> SnowballSampler<'a> {
                 }
                 None => {
                     edges.insert((c_solution.clone(), solution.clone()), 1);
-                    self.snowball(
-                        depth - 1,
-                        &solution,
-                        solutions,
-                        edges,
-                    )
+                    self.snowball(depth - 1, &solution, solutions, edges)
                 }
             };
         }
@@ -114,20 +107,19 @@ impl<'a> SnowballSampler<'a> {
                 neighbors.push(edge.0 .1.clone());
             }
         }
-    
+
         if neighbors.is_empty() {
-            return hillclimb_rand(self.distance_matrix, Some(self.rng.next_u64()));
+            let random = random_solution(self.distance_matrix.len(), Some(self.rng.next_u64()));
+            return (self.hillclimb)(&random, self.distance_matrix);
         }
-    
+
         let between = Uniform::from(0..neighbors.len());
         let a = between.sample(&mut self.rng);
         let len = tour_len(&neighbors[a], self.distance_matrix);
-    
+
         (neighbors[a].clone(), len)
     }
-    
 }
-
 
 pub fn mutate(perm: &Vec<usize>, n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<usize> {
     let mut mutation = perm.to_owned();

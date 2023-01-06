@@ -2,7 +2,7 @@ pub mod algorithms;
 pub mod helpers;
 pub mod parsers;
 
-use crate::algorithms::SnowballSampler;
+use crate::algorithms::{SnowballSampler, hillclimb};
 use helpers::*;
 use parsers::*;
 
@@ -46,7 +46,7 @@ fn main() {
     // }
 
     // println!("{}", local_minimums.lock().unwrap().len());
-    let mut snowball_sampler = SnowballSampler::new(1, 5, 3, 2, &distance_matrix, None);
+    let mut snowball_sampler = SnowballSampler::new(1, 5, 3, 2, &distance_matrix, &hillclimb::hillclimb, Some(2000));
     let (nodes, edges) = snowball_sampler.sample();
 
     println!("{:?}", nodes);
