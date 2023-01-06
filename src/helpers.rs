@@ -1,4 +1,5 @@
-use rand::{distributions::Uniform, prelude::Distribution, rngs::SmallRng, SeedableRng};
+use rand::{distributions::Uniform, prelude::Distribution, SeedableRng};
+use rand_chacha::ChaCha8Rng;
 
 #[derive(Debug, Clone)]
 pub struct Node {
@@ -48,8 +49,8 @@ pub fn random_solution(node_count: usize, seed: Option<u64>) -> Vec<usize> {
     let mut starting_path = vec![];
 
     let mut rng = match seed {
-        Some(seed) => SmallRng::seed_from_u64(seed),
-        None => SmallRng::from_entropy(),
+        Some(seed) => ChaCha8Rng::seed_from_u64(seed),
+        None => ChaCha8Rng::from_entropy(),
     };
 
     while !nodes_remaining.is_empty() {

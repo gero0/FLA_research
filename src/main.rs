@@ -2,8 +2,7 @@ pub mod algorithms;
 pub mod helpers;
 pub mod parsers;
 
-use crate::algorithms::hillclimb::*;
-use algorithms::snowball_sampling;
+use crate::algorithms::SnowballSampler;
 use helpers::*;
 use parsers::*;
 
@@ -47,13 +46,9 @@ fn main() {
     // }
 
     // println!("{}", local_minimums.lock().unwrap().len());
+    let mut snowball_sampler = SnowballSampler::new(1, 5, 3, 2, &distance_matrix, None);
+    let (nodes, edges) = snowball_sampler.sample();
 
-    let (nodes, edges) = snowball_sampling(5, 20, 3, 3, &distance_matrix);
-    println!("{:?}", nodes.len());
-    println!("{:?}", edges.len());
-    for edge in edges {
-        if edge.1 != 1 {
-            println!("{:?}", edge);
-        }
-    }
+    println!("{:?}", nodes);
+    // println!("{:?}", edges.len());
 }
