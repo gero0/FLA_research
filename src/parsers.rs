@@ -5,35 +5,10 @@ use std::{error::Error, fs};
 pub struct TspFile {
     pub name: String,
     pub dimension: u32,
-    pub nodes: Vec<Node>,
+    pub distance_matrix: Vec<Vec<i32>>,
 }
 
-pub fn parse_tsp_file(path: &str) -> Result<TspFile, Box<dyn Error>> {
-    let file = fs::read_to_string(path).unwrap();
-    let mut lines = file.lines();
-    let mut dimension = None;
-    let mut name = None;
-
-    for line in lines.by_ref() {
-        let line = line.trim();
-        if line == "NODE_COORD_SECTION" {
-            break;
-        }
-        let tokens: Vec<&str> = line.split(':').collect();
-        let key = tokens[0].trim();
-        let val = tokens[1].trim();
-
-        match key {
-            "DIMENSION" => dimension = Some(val.parse::<u32>()?),
-            "NAME" => name = Some(val),
-            _ => {}
-        }
-    }
-
-    //return error if we don't have a dimension provided
-    let dimension = dimension.ok_or(std::fmt::Error)?;
-    let name = String::from(name.unwrap_or(""));
-
+fn parse_euc_2d(lines: std::str::Lines) -> Result<Vec<Vec<i32>>, Box<dyn Error>> {
     let mut nodes = vec![];
 
     //parse nodes
@@ -49,10 +24,65 @@ pub fn parse_tsp_file(path: &str) -> Result<TspFile, Box<dyn Error>> {
         nodes.push(Node { pos: i, id, x, y });
     }
 
+    Ok(generate_distance_matrix(&nodes))
+}
+
+fn parse_full_matrix(lines: std::str::Lines, dim: u32) -> Result<Vec<Vec<i32>>, Box<dyn Error>> {
+    let mut d_matrix = vec![];
+    for (i, line) in lines.enumerate() {
+        if i >= dim as usize {
+            break;
+        }
+        let mut row = vec![];
+        let line = line.trim();
+        let tokens = line.split_whitespace();
+        for token in tokens {
+            row.push(token.parse::<i32>()?)
+        }
+        d_matrix.push(row);
+    }
+
+    Ok(d_matrix)
+}
+
+pub fn parse_tsp_file(path: &str) -> Result<TspFile, Box<dyn Error>> {
+    let file = fs::read_to_string(path).unwrap();
+    let mut lines = file.lines();
+    let mut dimension = None;
+    let mut name = None;
+    let mut edge_wf = "EUC_2D";
+
+    for line in lines.by_ref() {
+        let line = line.trim();
+        if line == "NODE_COORD_SECTION" || line == "EDGE_WEIGHT_SECTION" {
+            break;
+        }
+        let tokens: Vec<&str> = line.split(':').collect();
+        let key = tokens[0].trim();
+        let val = tokens[1].trim();
+
+        match key {
+            "DIMENSION" => dimension = Some(val.parse::<u32>()?),
+            "NAME" => name = Some(val),
+            "EDGE_WEIGHT_FORMAT" => edge_wf = val,
+            _ => {}
+        }
+    }
+
+    //return error if we don't have a dimension provided
+    let dimension = dimension.ok_or(std::fmt::Error)?;
+    let name = String::from(name.unwrap_or(""));
+
+    let distance_matrix = match edge_wf {
+        "EUC_2D" => parse_euc_2d(lines)?,
+        "FULL_MATRIX" => parse_full_matrix(lines, dimension)?,
+        _ => unimplemented!(),
+    };
+
     Ok(TspFile {
         name,
         dimension,
-        nodes,
+        distance_matrix,
     })
 }
 
