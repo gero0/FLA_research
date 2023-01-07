@@ -12,12 +12,14 @@ use std::{
 };
 
 fn main() {
-    // let file = parse_tsp_file("./data/berlin52.tsp").unwrap();
+    let file = parse_tsp_file("./data/berlin52.tsp").unwrap();
     // let file = parse_tsp_file("./data/ulysses16.tsp").unwrap();
-    let file = parse_tsp_file("./data/bays29.tsp").unwrap();
+    // let file = parse_tsp_file("./data/bays29.tsp").unwrap();
+
+    println!("{:?}", file.distance_matrix.iter().max());
 
     let mut snowball_sampler = SnowballSampler::new(
-        1,
+        5,
         5,
         3,
         2,
