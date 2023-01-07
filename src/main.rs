@@ -27,6 +27,29 @@ fn main() {
     );
     let (nodes, edges) = snowball_sampler.sample();
 
-    println!("{:?}", nodes);
-    println!("{:?}", edges);
+    println!("{:?}", nodes.len());
+    println!("{:?}", edges.len());
+}
+
+#[cfg(test)]
+mod tests{
+    use super::*;
+    #[test]
+    fn sampling_test() {
+        let file = parse_tsp_file("./data/bays29.tsp").unwrap();
+
+    let mut snowball_sampler = SnowballSampler::new(
+        1,
+        5,
+        3,
+        2,
+        &file.distance_matrix,
+        &two_opt,
+        Some(2000),
+    );
+    let (nodes, edges) = snowball_sampler.sample();
+
+    assert_eq!(nodes.len(), 4);
+    assert_eq!(edges.len(), 6);
+    }
 }
