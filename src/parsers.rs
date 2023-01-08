@@ -1,5 +1,5 @@
 use crate::helpers::*;
-use std::{error::Error, fs};
+use std::{error::Error, fmt::Display, fs};
 
 #[derive(Debug, Clone)]
 pub struct TspFile {
@@ -39,7 +39,7 @@ pub fn parse_tsp_file(path: &str) -> Result<TspFile, Box<dyn Error>> {
     }
 
     //return error if we don't have a dimension provided
-    let dimension = dimension.ok_or(std::fmt::Error)? as usize;
+    let dimension = dimension.ok_or(ParsingError::DimensionNotProvided)? as usize;
     let name = String::from(name.unwrap_or(""));
 
     let distance_matrix = match edge_wf {
@@ -69,7 +69,7 @@ pub fn parse_tsp_file(path: &str) -> Result<TspFile, Box<dyn Error>> {
         //     false,
         //     true,
         // )?,
-        _ => unimplemented!(),
+        _ => return Err(Box::new(ParsingError::UnsupportedWeightFormat)),
     };
 
     Ok(TspFile {

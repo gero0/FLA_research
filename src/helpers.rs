@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, fmt::Display};
 
 use rand::{distributions::Uniform, prelude::Distribution, SeedableRng};
 use rand_chacha::ChaCha8Rng;
@@ -10,6 +10,26 @@ pub struct Node {
     pub x: f32,
     pub y: f32,
 }
+
+#[derive(Debug, Clone)]
+pub enum ParsingError {
+    DimensionNotProvided,
+    UnsupportedWeightFormat,
+}
+
+impl Display for ParsingError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::DimensionNotProvided => write!(f, "Parsing Error: no Dimension field",),
+            Self::UnsupportedWeightFormat => write!(
+                f,
+                "Parsing Error: unsupported weight type or distance metric",
+            ),
+        }
+    }
+}
+
+impl Error for ParsingError {}
 
 pub fn generate_distance_matrix(
     nodes: &Vec<Node>,
@@ -28,7 +48,7 @@ pub fn generate_distance_matrix(
                 "MAN_2D" => dist2d_man(&nodes[i], &nodes[j]),
                 "MAX_2D" => dist2d_max(&nodes[i], &nodes[j]),
                 "GEO" => dist_geo(&nodes[i], &nodes[j]),
-                _ => return Err(Box::new(std::fmt::Error)),
+                _ => return Err(Box::new(ParsingError::UnsupportedWeightFormat)),
             }
         }
     }
