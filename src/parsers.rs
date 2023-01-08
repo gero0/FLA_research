@@ -45,6 +45,30 @@ pub fn parse_tsp_file(path: &str) -> Result<TspFile, Box<dyn Error>> {
     let distance_matrix = match edge_wf {
         "FUNCTION" => parse_nodelist(&lines[weights_i..weights_i + dimension], edge_wt)?,
         "FULL_MATRIX" => parse_full_matrix(&lines[weights_i..weights_i + dimension])?,
+        // "UPPER_ROW" => parse_half_matrix(
+        //     &lines[weights_i..weights_i + dimension - 1],
+        //     dimension,
+        //     true,
+        //     false,
+        // )?,
+        // "UPPER_DIAG_ROW" => parse_half_matrix(
+        //     &lines[weights_i..weights_i + dimension],
+        //     dimension,
+        //     true,
+        //     true,
+        // )?,
+        // "LOWER_ROW" => parse_half_matrix(
+        //     &lines[weights_i..weights_i + dimension - 1],
+        //     dimension,
+        //     false,
+        //     false,
+        // )?,
+        // "LOWER_DIAG_ROW" => parse_half_matrix(
+        //     &lines[weights_i..weights_i + dimension],
+        //     dimension,
+        //     false,
+        //     true,
+        // )?,
         _ => unimplemented!(),
     };
 
@@ -55,7 +79,7 @@ pub fn parse_tsp_file(path: &str) -> Result<TspFile, Box<dyn Error>> {
     })
 }
 
-fn parse_line(line : &str) -> (&str, &str) {
+fn parse_line(line: &str) -> (&str, &str) {
     let tokens: Vec<&str> = line.split(':').collect();
     let key = tokens[0].trim();
     let val = tokens[1].trim();
@@ -88,6 +112,33 @@ fn parse_full_matrix(lines: &[&str]) -> Result<Vec<Vec<i32>>, Box<dyn Error>> {
             row.push(token.parse::<i32>()?)
         }
         d_matrix.push(row);
+    }
+
+    Ok(d_matrix)
+}
+
+fn parse_half_matrix(
+    lines: &[&str],
+    dim: usize,
+    upper: bool,
+    diag: bool,
+) -> Result<Vec<Vec<i32>>, Box<dyn Error>> {
+    let mut d_matrix = vec![vec![0; dim]; dim];
+
+    for (row, line) in lines.iter().enumerate() {
+        let line = line.trim();
+        let tokens = line.split_whitespace();
+        for (i, token) in tokens.enumerate() {
+            let offset_x = match upper {
+                true => row,
+                false => dim - 1 - row,
+            };
+            let offset_y = match diag {
+                true => row + i,
+                false => row + i + 1,
+            };
+            d_matrix[offset_x][offset_y] = token.parse::<i32>()?
+        }
     }
 
     Ok(d_matrix)
