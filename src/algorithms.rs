@@ -9,7 +9,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 pub type HillclimbFunction = dyn Fn(&Vec<usize>, &Vec<Vec<i32>>) -> (Vec<usize>, i32);
 pub type NodeMap = FxHashMap<Vec<usize>, (u32, i32)>;
-pub type EdgeMap = FxHashMap<(Vec<usize>, Vec<usize>), i32>;
+pub type EdgeMap = FxHashMap<(u32, u32), i32>;
 
 pub struct SnowballSampler<'a> {
     walk_len: u32,
@@ -60,7 +60,11 @@ impl<'a> SnowballSampler<'a> {
 
         for _ in 0..self.walk_len {
             self.snowball(self.depth, &c_solution, &mut solutions, &mut edges);
-            visited_nodes.insert(c_solution.clone());
+            let id = solutions
+                .get(&c_solution)
+                .expect("Solution must be present in map at this point")
+                .0;
+            visited_nodes.insert(id);
             (c_solution, c_len) =
                 self.random_walk_step(&c_solution, &mut solutions, &edges, &visited_nodes);
         }
@@ -82,18 +86,27 @@ impl<'a> SnowballSampler<'a> {
         for _ in 0..self.n_edges {
             let random_solution = mutate(c_solution, self.mut_d, &mut self.rng);
             let (solution, len) = (self.hillclimb)(&random_solution, self.distance_matrix);
-            match solutions.get(&solution) {
-                Some(_) => { /*do nothing if solution is already in the map */ }
-                None => {
-                    solutions.insert(solution.clone(), (self.get_next_id(), len));
+            let solution_id = match solutions.get(&solution) {
+                Some(s) => {
+                    //solution already exists (unlikely but possible)
+                    s.0
                 }
-            }
-            match edges.get_mut(&(c_solution.to_owned(), solution.clone())) {
+                None => {
+                    let id = self.get_next_id();
+                    solutions.insert(solution.clone(), (id, len));
+                    id
+                }
+            };
+            let c_solution_id = solutions
+                .get(c_solution)
+                .expect("Current solution must already be in the map")
+                .0;
+            match edges.get_mut(&(c_solution_id, solution_id)) {
                 Some(weight) => {
                     *weight += 1;
                 }
                 None => {
-                    edges.insert((c_solution.clone(), solution.clone()), 1);
+                    edges.insert((c_solution_id, solution_id), 1);
                     self.snowball(depth - 1, &solution, solutions, edges)
                 }
             };
@@ -105,11 +118,15 @@ impl<'a> SnowballSampler<'a> {
         c_solution: &Vec<usize>,
         solutions: &mut NodeMap,
         edges: &EdgeMap,
-        visited_nodes: &FxHashSet<Vec<usize>>,
+        visited_nodes: &FxHashSet<u32>,
     ) -> (Vec<usize>, i32) {
         let mut neighbors = vec![];
+        let c_solution_id = solutions
+            .get(c_solution)
+            .expect("Solution must be present in map at this point")
+            .0;
         for edge in edges {
-            if edge.0 .0 == *c_solution && !visited_nodes.contains(&edge.0 .1) {
+            if edge.0 .0 == c_solution_id && !visited_nodes.contains(&edge.0 .1) {
                 neighbors.push(edge.0 .1.clone());
             }
         }
@@ -117,7 +134,7 @@ impl<'a> SnowballSampler<'a> {
         if neighbors.is_empty() {
             let random = random_solution(self.distance_matrix.len(), Some(self.rng.next_u64()));
             let (solution, len) = (self.hillclimb)(&random, self.distance_matrix);
-                        match solutions.get(&solution) {
+            match solutions.get(&solution) {
                 Some(_) => { /*do nothing if solution is already in the map */ }
                 None => {
                     solutions.insert(solution.clone(), (self.get_next_id(), len));
@@ -128,9 +145,13 @@ impl<'a> SnowballSampler<'a> {
 
         let between = Uniform::from(0..neighbors.len());
         let a = between.sample(&mut self.rng);
-        let len = tour_len(&neighbors[a], self.distance_matrix);
+        let neighbor = solutions
+            .iter()
+            .find(|(_k, v)| v.0 == neighbors[a])
+            .expect("Solution must be present in map at this point");
+        let len = tour_len(neighbor.0, self.distance_matrix);
 
-        (neighbors[a].clone(), len)
+        (neighbor.0.clone(), len)
     }
 
     fn get_next_id(&mut self) -> u32 {
