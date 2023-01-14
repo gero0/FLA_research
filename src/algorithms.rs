@@ -1,7 +1,4 @@
-pub mod hillclimb;
-pub mod two_opt;
-
-use crate::helpers::{random_solution, tour_len};
+use tsptools::helpers::{random_solution, tour_len};
 
 use rand::{distributions::Uniform, prelude::Distribution, RngCore, SeedableRng};
 use rand_chacha::{self, ChaCha8Rng};

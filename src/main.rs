@@ -1,19 +1,12 @@
 pub mod algorithms;
-pub mod helpers;
-pub mod parsers;
 
-use crate::algorithms::{
-    hillclimb::hillclimb, two_opt::two_opt, EdgeMap, NodeMap, SnowballSampler,
+use tsptools::{
+    algorithms::{hillclimb::hillclimb, two_opt::two_opt},
+    parsers::*,
 };
-use parsers::*;
 
-use std::{
-    collections::HashMap,
-    fs::File,
-    io::Write,
-    sync::{Arc, Mutex},
-    thread::{self, available_parallelism},
-};
+use crate::algorithms::{EdgeMap, NodeMap, SnowballSampler};
+use std::{fs::File, io::Write};
 
 fn main() {
     let file = parse_tsp_file("./data/berlin52.tsp").unwrap();
