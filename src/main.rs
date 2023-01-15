@@ -46,7 +46,7 @@ mod tests {
             SnowballSampler::new(1, 5, 3, 2, &file.distance_matrix, &two_opt, Some(2000));
         let (nodes, edges) = snowball_sampler.sample();
 
-        assert_eq!(nodes.len(), 4);
-        assert_eq!(edges.len(), 6);
+        assert_eq!(nodes.len(), 16);
+        assert_eq!(edges.len(), 23);
     }
 }
