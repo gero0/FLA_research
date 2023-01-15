@@ -80,7 +80,7 @@ dependencies = [
 [[package]]
 name = "tsptools"
 version = "0.1.0"
-source = "git+https://github.com/gero0/tsptools#d6da50912d1c266368a7b5ca687a854c9a192b1b"
+source = "git+https://github.com/gero0/tsptools#2217ff93313ec0969d12dd42a9bc7c798670bfd9"
 dependencies = [
  "rand",
  "rand_chacha",
