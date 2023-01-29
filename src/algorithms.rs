@@ -8,25 +8,25 @@ pub type HillclimbFunction = dyn Fn(&Vec<usize>, &Vec<Vec<i32>>, bool) -> (Vec<u
 pub type NodeMap = FxHashMap<Vec<usize>, (u32, i32)>;
 pub type EdgeMap = FxHashMap<(u32, u32), i32>;
 
-pub struct SnowballSampler<'a> {
+pub struct SnowballSampler {
     walk_len: u32,
     n_edges: u32,
     depth: u32,
     mut_d: usize,
     rng: ChaCha8Rng,
-    distance_matrix: &'a Vec<Vec<i32>>,
-    hillclimb: &'a HillclimbFunction,
+    distance_matrix: Vec<Vec<i32>>,
+    hillclimb: &'static HillclimbFunction,
     last_node_id: u32,
 }
 
-impl<'a> SnowballSampler<'a> {
+impl SnowballSampler {
     pub fn new(
         walk_len: u32,
         n_edges: u32,
         depth: u32,
         mut_d: usize,
-        distance_matrix: &'a Vec<Vec<i32>>,
-        hillclimb_function: &'a HillclimbFunction,
+        distance_matrix: Vec<Vec<i32>>,
+        hillclimb_function: &'static HillclimbFunction,
         seed: Option<u64>,
     ) -> Self {
         let rng = match seed {
@@ -52,7 +52,7 @@ impl<'a> SnowballSampler<'a> {
         let mut visited_nodes = FxHashSet::default();
 
         let start = random_solution(self.distance_matrix.len(), Some(self.rng.next_u64()), true);
-        let (mut c_solution, mut c_len) = (self.hillclimb)(&start, self.distance_matrix, true);
+        let (mut c_solution, mut c_len) = (self.hillclimb)(&start, &self.distance_matrix, true);
         solutions.insert(c_solution.clone(), (self.get_next_id(), c_len));
 
         for _ in 0..self.walk_len {
@@ -82,7 +82,7 @@ impl<'a> SnowballSampler<'a> {
 
         for _ in 0..self.n_edges {
             let random_solution = mutate(c_solution, self.mut_d, &mut self.rng);
-            let (solution, len) = (self.hillclimb)(&random_solution, self.distance_matrix, true);
+            let (solution, len) = (self.hillclimb)(&random_solution, &self.distance_matrix, true);
             let solution_id = match solutions.get(&solution) {
                 Some(s) => {
                     //solution already exists (unlikely but possible)
@@ -129,8 +129,9 @@ impl<'a> SnowballSampler<'a> {
         }
 
         if neighbors.is_empty() {
-            let random = random_solution(self.distance_matrix.len(), Some(self.rng.next_u64()), true);
-            let (solution, len) = (self.hillclimb)(&random, self.distance_matrix, true);
+            let random =
+                random_solution(self.distance_matrix.len(), Some(self.rng.next_u64()), true);
+            let (solution, len) = (self.hillclimb)(&random, &self.distance_matrix, true);
             match solutions.get(&solution) {
                 Some(_) => { /*do nothing if solution is already in the map */ }
                 None => {
@@ -146,7 +147,7 @@ impl<'a> SnowballSampler<'a> {
             .iter()
             .find(|(_k, v)| v.0 == neighbors[a])
             .expect("Solution must be present in map at this point");
-        let len = tour_len(neighbor.0, self.distance_matrix);
+        let len = tour_len(neighbor.0, &self.distance_matrix);
 
         (neighbor.0.clone(), len)
     }

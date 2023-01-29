@@ -5,16 +5,14 @@ use tsptools::{
     parsers::*,
 };
 
-use crate::algorithms::{EdgeMap, NodeMap, SnowballSampler};
+use crate::algorithms::SnowballSampler;
 use std::{fs::File, io::Write};
 
 fn main() {
-    let file = parse_tsp_file("./data/berlin52.tsp").unwrap();
-    // let file = parse_tsp_file("./data/ulysses16.tsp").unwrap();
-    // let file = parse_tsp_file("./data/gr21.tsp").unwrap();
+    let file = parse_tsp_file("./data/ulysses16.tsp").unwrap();
 
     let mut snowball_sampler =
-        SnowballSampler::new(5, 5, 3, 2, &file.distance_matrix, &two_opt, Some(2000));
+        SnowballSampler::new(5, 5, 3, 2, file.distance_matrix, &two_opt, Some(2000));
     let (nodes, edges) = snowball_sampler.sample();
 
     let mut node_file = File::create("nodes.txt").expect("I assumed the OS will cooperate...");
@@ -43,7 +41,7 @@ mod tests {
         let file = parse_tsp_file("./data/bays29.tsp").unwrap();
 
         let mut snowball_sampler =
-            SnowballSampler::new(1, 5, 3, 2, &file.distance_matrix, &two_opt, Some(2000));
+            SnowballSampler::new(1, 5, 3, 2, file.distance_matrix, &two_opt, Some(2000));
         let (nodes, edges) = snowball_sampler.sample();
 
         assert_eq!(nodes.len(), 16);
