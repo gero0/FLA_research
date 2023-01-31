@@ -1,0 +1,14 @@
+{
+    "tasks": [
+        {
+            "type": "process",
+            "command": "maturin",
+            "args": ["develop"],
+            "options": {
+                "cwd": "${workspaceFolder}/tsp_samplers"
+            },
+            "group": "build",
+            "label": "maturin_develop"
+        }
+    ]
+}
