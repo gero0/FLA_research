@@ -1,12 +1,9 @@
+use rand::{distributions::Uniform, prelude::Distribution, RngCore, SeedableRng};
+use rand_chacha::ChaCha8Rng;
+use rustc_hash::{FxHashMap, FxHashSet};
 use tsptools::helpers::{random_solution, tour_len};
 
-use rand::{distributions::Uniform, prelude::Distribution, RngCore, SeedableRng};
-use rand_chacha::{self, ChaCha8Rng};
-use rustc_hash::{FxHashMap, FxHashSet};
-
-pub type HillclimbFunction = dyn Fn(&Vec<usize>, &Vec<Vec<i32>>, bool) -> (Vec<usize>, i32);
-pub type NodeMap = FxHashMap<Vec<usize>, (u32, i32)>;
-pub type EdgeMap = FxHashMap<(u32, u32), i32>;
+use super::{EdgeMap, HillclimbFunction, NodeMap};
 
 pub struct SnowballSampler {
     walk_len: u32,
@@ -15,8 +12,13 @@ pub struct SnowballSampler {
     mut_d: usize,
     rng: ChaCha8Rng,
     distance_matrix: Vec<Vec<i32>>,
-    hillclimb: &'static HillclimbFunction,
+    hillclimb: HillclimbFunction,
     last_node_id: u32,
+    solutions: NodeMap,
+    edges: EdgeMap,
+    visited_nodes: FxHashSet<u32>,
+    hc_counter: u64,
+    current_solution: Option<(Vec<usize>, i32)>,
 }
 
 impl SnowballSampler {
@@ -26,7 +28,7 @@ impl SnowballSampler {
         depth: u32,
         mut_d: usize,
         distance_matrix: Vec<Vec<i32>>,
-        hillclimb_function: &'static HillclimbFunction,
+        hillclimb_function: HillclimbFunction,
         seed: Option<u64>,
     ) -> Self {
         let rng = match seed {
@@ -43,39 +45,56 @@ impl SnowballSampler {
             distance_matrix,
             hillclimb: hillclimb_function,
             last_node_id: 0,
+            solutions: FxHashMap::default(),
+            edges: FxHashMap::default(),
+            visited_nodes: FxHashSet::default(),
+            hc_counter: 0,
+            current_solution: None,
         }
     }
 
-    pub fn sample(&mut self) -> (NodeMap, EdgeMap) {
-        let mut solutions = FxHashMap::default();
-        let mut edges = FxHashMap::default();
-        let mut visited_nodes = FxHashSet::default();
+    pub fn reset(&mut self) {
+        self.solutions = FxHashMap::default();
+        self.edges = FxHashMap::default();
+        self.visited_nodes = FxHashSet::default();
+        self.hc_counter = 0;
+        self.current_solution = None;
+    }
 
-        let start = random_solution(self.distance_matrix.len(), Some(self.rng.next_u64()), true);
-        let (mut c_solution, mut c_len) = (self.hillclimb)(&start, &self.distance_matrix, true);
-        solutions.insert(c_solution.clone(), (self.get_next_id(), c_len));
+    pub fn get_samples(&self) -> (&NodeMap, &EdgeMap) {
+        (&self.solutions, &self.edges)
+    }
+
+    pub fn get_hc_calls(&self) -> u64 {
+        self.hc_counter
+    }
+
+    pub fn sample(&mut self) {
+        if self.current_solution.is_none() {
+            let start =
+                random_solution(self.distance_matrix.len(), Some(self.rng.next_u64()), true);
+            let (c_solution, c_len) = (self.hillclimb)(&start, &self.distance_matrix, true);
+            self.hc_counter += 1;
+            let id = self.get_next_id();
+            self.solutions.insert(c_solution.clone(), (id, c_len));
+            self.current_solution = Some((c_solution, c_len));
+        }
 
         for _ in 0..self.walk_len {
-            self.snowball(self.depth, &c_solution, &mut solutions, &mut edges);
-            let id = solutions
-                .get(&c_solution)
+            let current_solution = self.current_solution.as_ref().unwrap().clone();
+            self.snowball(self.depth, &current_solution.0);
+            let id = self
+                .solutions
+                .get(&current_solution.0)
                 .expect("Solution must be present in map at this point")
                 .0;
-            visited_nodes.insert(id);
-            (c_solution, c_len) =
-                self.random_walk_step(&c_solution, &mut solutions, &edges, &visited_nodes);
+            self.visited_nodes.insert(id);
+            let new_sol = self.random_walk_step(&current_solution.0);
+            self.current_solution = Some(new_sol);
         }
-
-        (solutions, edges)
     }
 
-    fn snowball(
-        &mut self,
-        depth: u32,
-        c_solution: &Vec<usize>,
-        solutions: &mut NodeMap,
-        edges: &mut EdgeMap,
-    ) {
+    fn snowball(&mut self, depth: u32, c_solution: &Vec<usize>) {
         if depth == 0 {
             return;
         }
@@ -83,47 +102,44 @@ impl SnowballSampler {
         for _ in 0..self.n_edges {
             let random_solution = mutate(c_solution, self.mut_d, &mut self.rng);
             let (solution, len) = (self.hillclimb)(&random_solution, &self.distance_matrix, true);
-            let solution_id = match solutions.get(&solution) {
+            self.hc_counter += 1;
+            let solution_id = match self.solutions.get(&solution) {
                 Some(s) => {
                     //solution already exists (unlikely but possible)
                     s.0
                 }
                 None => {
                     let id = self.get_next_id();
-                    solutions.insert(solution.clone(), (id, len));
+                    self.solutions.insert(solution.clone(), (id, len));
                     id
                 }
             };
-            let c_solution_id = solutions
+            let c_solution_id = self
+                .solutions
                 .get(c_solution)
                 .expect("Current solution must already be in the map")
                 .0;
-            match edges.get_mut(&(c_solution_id, solution_id)) {
+            match self.edges.get_mut(&(c_solution_id, solution_id)) {
                 Some(weight) => {
                     *weight += 1;
                 }
                 None => {
-                    edges.insert((c_solution_id, solution_id), 1);
-                    self.snowball(depth - 1, &solution, solutions, edges)
+                    self.edges.insert((c_solution_id, solution_id), 1);
+                    self.snowball(depth - 1, &solution)
                 }
             };
         }
     }
 
-    fn random_walk_step(
-        &mut self,
-        c_solution: &Vec<usize>,
-        solutions: &mut NodeMap,
-        edges: &EdgeMap,
-        visited_nodes: &FxHashSet<u32>,
-    ) -> (Vec<usize>, i32) {
+    fn random_walk_step(&mut self, c_solution: &Vec<usize>) -> (Vec<usize>, i32) {
         let mut neighbors = vec![];
-        let c_solution_id = solutions
+        let c_solution_id = self
+            .solutions
             .get(c_solution)
             .expect("Solution must be present in map at this point")
             .0;
-        for edge in edges {
-            if edge.0 .0 == c_solution_id && !visited_nodes.contains(&edge.0 .1) {
+        for edge in self.edges.iter() {
+            if edge.0 .0 == c_solution_id && !self.visited_nodes.contains(&edge.0 .1) {
                 neighbors.push(edge.0 .1.clone());
             }
         }
@@ -132,10 +148,12 @@ impl SnowballSampler {
             let random =
                 random_solution(self.distance_matrix.len(), Some(self.rng.next_u64()), true);
             let (solution, len) = (self.hillclimb)(&random, &self.distance_matrix, true);
-            match solutions.get(&solution) {
+            self.hc_counter += 1;
+            match self.solutions.get(&solution) {
                 Some(_) => { /*do nothing if solution is already in the map */ }
                 None => {
-                    solutions.insert(solution.clone(), (self.get_next_id(), len));
+                    let id = self.get_next_id();
+                    self.solutions.insert(solution.clone(), (id, len));
                 }
             }
             return (solution, len);
@@ -143,7 +161,8 @@ impl SnowballSampler {
 
         let between = Uniform::from(0..neighbors.len());
         let a = between.sample(&mut self.rng);
-        let neighbor = solutions
+        let neighbor = self
+            .solutions
             .iter()
             .find(|(_k, v)| v.0 == neighbors[a])
             .expect("Solution must be present in map at this point");
