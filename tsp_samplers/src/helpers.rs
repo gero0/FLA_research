@@ -54,6 +54,12 @@ pub fn mutate(perm: &Vec<u16>, n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<u16>
     mutation
 }
 
+pub fn tour_len(path: &Vec<u16>, distance_matrix: &Vec<Vec<i32>>) -> i32 {
+    let len: i32 = path.windows(2).map(|w| distance_matrix[w[0] as usize][w[1] as usize]).sum();
+    len + distance_matrix[path[0] as usize][path[path.len() - 1] as usize]
+}
+
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;

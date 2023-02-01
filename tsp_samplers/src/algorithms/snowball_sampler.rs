@@ -73,9 +73,12 @@ impl SnowballSampler {
 
     pub fn sample(&mut self) {
         if self.current_solution.is_none() {
-            let start =
-                random_solution(self.distance_matrix.len() as u16, Some(self.rng.next_u64()), true);
-            let (c_solution, c_len) = (self.hillclimb)(&start, &self.distance_matrix, true);
+            let start = random_solution(
+                self.distance_matrix.len() as u16,
+                Some(self.rng.next_u64()),
+                true,
+            );
+            let (c_solution, c_len) = (self.hillclimb)(&start, &self.distance_matrix);
             self.hc_counter += 1;
             let id = self.get_next_id();
             self.solutions.insert(c_solution.clone(), (id, c_len));
@@ -103,7 +106,7 @@ impl SnowballSampler {
 
         for _ in 0..self.n_edges {
             let random_solution = mutate(c_solution, self.mut_d, &mut self.rng);
-            let (solution, len) = (self.hillclimb)(&random_solution, &self.distance_matrix, true);
+            let (solution, len) = (self.hillclimb)(&random_solution, &self.distance_matrix);
             self.hc_counter += 1;
             let solution_id = match self.solutions.get(&solution) {
                 Some(s) => {
@@ -147,9 +150,12 @@ impl SnowballSampler {
         }
 
         if neighbors.is_empty() {
-            let random =
-                random_solution(self.distance_matrix.len() as u16, Some(self.rng.next_u64()), true);
-            let (solution, len) = (self.hillclimb)(&random, &self.distance_matrix, true);
+            let random = random_solution(
+                self.distance_matrix.len() as u16,
+                Some(self.rng.next_u64()),
+                true,
+            );
+            let (solution, len) = (self.hillclimb)(&random, &self.distance_matrix);
             self.hc_counter += 1;
             match self.solutions.get(&solution) {
                 Some(_) => { /*do nothing if solution is already in the map */ }

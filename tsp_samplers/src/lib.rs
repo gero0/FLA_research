@@ -1,9 +1,12 @@
 use pyo3::{exceptions::PyRuntimeError, prelude::*};
-use tsptools::algorithms::{hillclimb::hillclimb, two_opt::two_opt};
 
 pub mod algorithms;
 pub mod helpers;
-use algorithms::snowball_sampler::SnowballSampler;
+use algorithms::{
+    hillclimb::hillclimb_steepest,
+    snowball_sampler::SnowballSampler,
+    two_opt::{two_opt_besti, two_opt_firsti},
+};
 
 #[pyclass]
 #[pyo3(
@@ -27,8 +30,9 @@ impl PySnowballSampler {
         seed: Option<u64>,
     ) -> PyResult<Self> {
         let hillclimb_function = match hillclimb_function {
-            "2opt" | "twoopt" | "two_opt" => two_opt,
-            "hc" | "hillclimb" => hillclimb,
+            "2opt" | "twoopt" | "two_opt" => two_opt_besti,
+            "2opt_fi" | "twooptfi" | "two_opt_fi" | "twoopt_fi" => two_opt_firsti,
+            "hc" | "hillclimb" => hillclimb_steepest,
             _ => {
                 return Err(PyErr::new::<PyRuntimeError, _>(
                     "Invalid hillclimb algorithm",
@@ -75,16 +79,16 @@ fn tsp_samplers(_py: Python, m: &PyModule) -> PyResult<()> {
 
 #[cfg(test)]
 mod tests {
-    use tsptools::{algorithms::two_opt::two_opt, parsers::*};
 
-    use crate::algorithms::snowball_sampler::SnowballSampler;
+    use crate::algorithms::{snowball_sampler::SnowballSampler, two_opt::two_opt_besti};
+    use tsptools::parsers::parse_tsp_file;
 
     #[test]
     fn sampling_test() {
         let file = parse_tsp_file("./data/bays29.tsp").unwrap();
 
         let mut snowball_sampler =
-            SnowballSampler::new(1, 5, 3, 2, file.distance_matrix, two_opt, Some(2000));
+            SnowballSampler::new(1, 5, 3, 2, file.distance_matrix, two_opt_besti, Some(2000));
         snowball_sampler.sample();
         let (nodes, edges) = snowball_sampler.get_samples();
 

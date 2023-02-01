@@ -1,6 +1,5 @@
-use tsp_samplers::algorithms::{snowball_sampler::SnowballSampler, exhaustive_sampler::{self, ExhaustiveSampler}};
+use tsp_samplers::algorithms::{snowball_sampler::SnowballSampler, exhaustive_sampler::{self, ExhaustiveSampler}, hillclimb::hillclimb_steepest};
 use tsptools::{
-    algorithms::{hillclimb::hillclimb, two_opt::two_opt},
     parsers::parse_tsp_file,
 };
 
@@ -15,7 +14,7 @@ fn main() {
     // println!("{}, {}", nodes.len(), edges.len());
 
     let file = parse_tsp_file("./data/burma14.tsp").unwrap();
-    let mut exhaustive_sampler = ExhaustiveSampler::new(2, file.distance_matrix, hillclimb);
+    let mut exhaustive_sampler = ExhaustiveSampler::new(2, file.distance_matrix, hillclimb_steepest);
     exhaustive_sampler.sample();
     let (nodes, edges) = exhaustive_sampler.get_samples();
     println!("{}, {}", nodes.len(), edges.len());

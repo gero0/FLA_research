@@ -55,7 +55,7 @@ impl ExhaustiveSampler {
                 for permutation in chunk {
                     s.spawn(|| {
                         let (solution, s_len) =
-                            (self.hillclimb_function)(permutation, &distance_matrix, true);
+                            (self.hillclimb_function)(permutation, &distance_matrix);
                         let id = last_id.fetch_add(1, Ordering::Relaxed);
                         solutions
                             .lock()

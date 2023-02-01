@@ -59,7 +59,7 @@ impl PwrSampler {
         for _ in 0..n_max {
             for _ in 0..n_att {
                 let start = random_solution(n as u16, None, true);
-                let (solution, s_len) = (self.hillclimb_function)(&start, distance_matrix, true);
+                let (solution, s_len) = (self.hillclimb_function)(&start, distance_matrix);
                 match self.solutions.get(&start) {
                     Some(_) => { /*do nothing if solution is already in the map */ }
                     None => {
@@ -76,7 +76,7 @@ impl PwrSampler {
         for s in &self.solutions {
             for _ in 0..e_att {
                 let start = mutate(s.0, 2, &mut self.rng);
-                let new_s = (self.hillclimb_function)(&start, distance_matrix, true);
+                let new_s = (self.hillclimb_function)(&start, distance_matrix);
                 match self.solutions.get(&new_s.0) {
                     Some(new_s) => match self.edges.get_mut(&((s.1).0, new_s.0)) {
                         Some(edge) => *edge += 1,
