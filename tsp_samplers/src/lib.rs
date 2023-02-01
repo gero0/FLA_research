@@ -2,6 +2,7 @@ use pyo3::{exceptions::PyRuntimeError, prelude::*};
 use tsptools::algorithms::{hillclimb::hillclimb, two_opt::two_opt};
 
 pub mod algorithms;
+pub mod helpers;
 use algorithms::snowball_sampler::SnowballSampler;
 
 #[pyclass]

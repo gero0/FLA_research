@@ -5,3 +5,4 @@ pub type NodeMap = FxHashMap<Vec<usize>, (u32, i32)>;
 pub type EdgeMap = FxHashMap<(u32, u32), i32>;
 
 pub mod snowball_sampler;
+pub mod exhaustive_sampler;
