@@ -6,3 +6,4 @@ pub type EdgeMap = FxHashMap<(u16, u16), i32>;
 
 pub mod snowball_sampler;
 pub mod exhaustive_sampler;
+pub mod pwr_sampler;

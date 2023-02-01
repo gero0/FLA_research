@@ -1,3 +1,6 @@
+use rand::{distributions::Uniform, prelude::Distribution};
+use rand_chacha::ChaCha8Rng;
+
 pub fn generate_perms(set: &[u16], preserve_first: bool) -> Vec<Vec<u16>> {
     let mut perms = vec![];
     let mut set = set.to_owned();
@@ -30,6 +33,25 @@ fn heap_perm(a: &mut [u16], k: usize, perms_vec: &mut Vec<Vec<u16>>) {
             }
         }
     }
+}
+
+pub fn mutate(perm: &Vec<u16>, n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<u16> {
+    let mut mutation = perm.to_owned();
+    let mut i = 0;
+    while i < n_swaps {
+        let between = Uniform::from(0..perm.len());
+        let a = between.sample(rng);
+        let b = between.sample(rng);
+
+        if a == b {
+            continue;
+        }
+
+        mutation.swap(a, b);
+        i += 1;
+    }
+
+    mutation
 }
 
 #[cfg(test)]

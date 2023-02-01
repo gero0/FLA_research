@@ -3,6 +3,8 @@ use rand_chacha::ChaCha8Rng;
 use rustc_hash::{FxHashMap, FxHashSet};
 use tsptools::helpers::{random_solution, tour_len};
 
+use crate::helpers::mutate;
+
 use super::{EdgeMap, HillclimbFunction, NodeMap};
 
 pub struct SnowballSampler {
@@ -175,23 +177,4 @@ impl SnowballSampler {
         self.last_node_id += 1;
         self.last_node_id - 1
     }
-}
-
-pub fn mutate(perm: &Vec<u16>, n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<u16> {
-    let mut mutation = perm.to_owned();
-    let mut i = 0;
-    while i < n_swaps {
-        let between = Uniform::from(0..perm.len());
-        let a = between.sample(rng);
-        let b = between.sample(rng);
-
-        if a == b {
-            continue;
-        }
-
-        mutation.swap(a, b);
-        i += 1;
-    }
-
-    mutation
 }
