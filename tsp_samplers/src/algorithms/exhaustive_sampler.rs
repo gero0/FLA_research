@@ -1,6 +1,6 @@
 use std::{
     sync::{
-        atomic::{AtomicU32, Ordering},
+        atomic::{AtomicU16, Ordering},
         Mutex,
     },
     thread::{self, available_parallelism},
@@ -14,7 +14,7 @@ use super::{EdgeMap, HillclimbFunction, NodeMap};
 
 pub struct ExhaustiveSampler {
     distance_matrix: Vec<Vec<i32>>,
-    permutations: Vec<Vec<usize>>,
+    permutations: Vec<Vec<u16>>,
     hillclimb_function: HillclimbFunction,
     mut_d: usize,
     solutions: NodeMap,
@@ -27,7 +27,7 @@ impl ExhaustiveSampler {
         distance_matrix: Vec<Vec<i32>>,
         hillclimb_function: HillclimbFunction,
     ) -> Self {
-        let set: Vec<_> = (0..distance_matrix.len()).collect();
+        let set: Vec<_> = (0..distance_matrix.len() as u16).collect();
         let permutations = generate_perms(&set, true);
 
         Self {
@@ -48,7 +48,7 @@ impl ExhaustiveSampler {
         // let thread_count: usize = available_parallelism().unwrap().get();
         let thread_count = 1;
 
-        let last_id = AtomicU32::new(0);
+        let last_id = AtomicU16::new(0);
 
         thread::scope(|s| {
             for chunk in self.permutations.chunks(thread_count) {

@@ -51,7 +51,7 @@ impl PySnowballSampler {
         self.inner.sample();
     }
 
-    pub fn get_results(&mut self) -> (Vec<(Vec<usize>, u32, i32)>, Vec<(u32, u32, i32)>) {
+    pub fn get_results(&mut self) -> (Vec<(Vec<u16>, u16, i32)>, Vec<(u16, u16, i32)>) {
         let (nmap, emap) = self.inner.get_samples();
         let n_vec: Vec<_> = nmap
             .into_iter()

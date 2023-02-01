@@ -1,4 +1,4 @@
-pub fn generate_perms(set: &[usize], preserve_first: bool) -> Vec<Vec<usize>> {
+pub fn generate_perms(set: &[u16], preserve_first: bool) -> Vec<Vec<u16>> {
     let mut perms = vec![];
     let mut set = set.to_owned();
 
@@ -17,7 +17,7 @@ pub fn generate_perms(set: &[usize], preserve_first: bool) -> Vec<Vec<usize>> {
     perms
 }
 
-fn heap_perm(a: &mut [usize], k: usize, perms_vec: &mut Vec<Vec<usize>>) {
+fn heap_perm(a: &mut [u16], k: usize, perms_vec: &mut Vec<Vec<u16>>) {
     if k == 1 {
         perms_vec.push(a.to_vec());
     } else {
@@ -57,7 +57,7 @@ mod tests {
 
     #[test]
     fn test_perm_generation() {
-        let sets: [Box<[usize]>; 3] = [
+        let sets: [Box<[u16]>; 3] = [
             Box::new([1, 2, 3]),
             Box::new([1, 2, 3, 4]),
             Box::new([1, 2, 3, 4, 5, 6]),

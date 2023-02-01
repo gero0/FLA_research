@@ -13,12 +13,12 @@ pub struct SnowballSampler {
     rng: ChaCha8Rng,
     distance_matrix: Vec<Vec<i32>>,
     hillclimb: HillclimbFunction,
-    last_node_id: u32,
+    last_node_id: u16,
     solutions: NodeMap,
     edges: EdgeMap,
-    visited_nodes: FxHashSet<u32>,
+    visited_nodes: FxHashSet<u16>,
     hc_counter: u64,
-    current_solution: Option<(Vec<usize>, i32)>,
+    current_solution: Option<(Vec<u16>, i32)>,
 }
 
 impl SnowballSampler {
@@ -72,7 +72,7 @@ impl SnowballSampler {
     pub fn sample(&mut self) {
         if self.current_solution.is_none() {
             let start =
-                random_solution(self.distance_matrix.len(), Some(self.rng.next_u64()), true);
+                random_solution(self.distance_matrix.len() as u16, Some(self.rng.next_u64()), true);
             let (c_solution, c_len) = (self.hillclimb)(&start, &self.distance_matrix, true);
             self.hc_counter += 1;
             let id = self.get_next_id();
@@ -94,7 +94,7 @@ impl SnowballSampler {
         }
     }
 
-    fn snowball(&mut self, depth: u32, c_solution: &Vec<usize>) {
+    fn snowball(&mut self, depth: u32, c_solution: &Vec<u16>) {
         if depth == 0 {
             return;
         }
@@ -131,7 +131,7 @@ impl SnowballSampler {
         }
     }
 
-    fn random_walk_step(&mut self, c_solution: &Vec<usize>) -> (Vec<usize>, i32) {
+    fn random_walk_step(&mut self, c_solution: &Vec<u16>) -> (Vec<u16>, i32) {
         let mut neighbors = vec![];
         let c_solution_id = self
             .solutions
@@ -146,7 +146,7 @@ impl SnowballSampler {
 
         if neighbors.is_empty() {
             let random =
-                random_solution(self.distance_matrix.len(), Some(self.rng.next_u64()), true);
+                random_solution(self.distance_matrix.len() as u16, Some(self.rng.next_u64()), true);
             let (solution, len) = (self.hillclimb)(&random, &self.distance_matrix, true);
             self.hc_counter += 1;
             match self.solutions.get(&solution) {
@@ -171,13 +171,13 @@ impl SnowballSampler {
         (neighbor.0.clone(), len)
     }
 
-    fn get_next_id(&mut self) -> u32 {
+    fn get_next_id(&mut self) -> u16 {
         self.last_node_id += 1;
         self.last_node_id - 1
     }
 }
 
-pub fn mutate(perm: &Vec<usize>, n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<usize> {
+pub fn mutate(perm: &Vec<u16>, n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<u16> {
     let mut mutation = perm.to_owned();
     let mut i = 0;
     while i < n_swaps {
