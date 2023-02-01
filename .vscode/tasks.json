@@ -3,9 +3,14 @@
         {
             "type": "process",
             "command": "maturin",
-            "args": ["develop"],
+            "args": [
+                "develop"
+            ],
             "options": {
-                "cwd": "${workspaceFolder}/tsp_samplers"
+                "cwd": "${workspaceFolder}/tsp_samplers",
+                "env": {
+                    "VIRTUAL_ENV": "${env:HOME}/.pyenv/versions/pyo3"
+                }
             },
             "group": "build",
             "label": "maturin_develop"

@@ -24,7 +24,7 @@ def split_edge_data(edges):
 
 m = create_distance_matrix(problem)
 
-s = SnowballSampler(1, 20, 3, 2, m, "twoopt", 2000)
+s = SnowballSampler(1, 5, 3, 2, m, "twooptfi", 2000)
 
 x = []
 y = []
@@ -46,7 +46,7 @@ plt.savefig("fig.png")
 # nodes, edges = s.get_results()
 
 
-# g = Graph(n=len(nodes), edges=edge_list, edge_attrs={'weight': weight_list, "label" : weight_list})
-# ig.plot(g, target="graph.pdf")
+g = Graph(n=len(nodes), edges=edge_list, edge_attrs={'weight': weight_list, "label" : weight_list})
+ig.plot(g, target="graph.pdf")
 
 # print(g)
