@@ -24,6 +24,7 @@ pub struct PwrSampler {
     rng: ChaCha8Rng,
     solutions: NodeMap,
     edges: EdgeMap,
+    hc_counter: u64,
 }
 
 impl PwrSampler {
@@ -43,7 +44,14 @@ impl PwrSampler {
             rng,
             solutions: NodeMap::default(),
             edges: EdgeMap::default(),
+            hc_counter: 0,
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.solutions = NodeMap::default();
+        self.edges = EdgeMap::default();
+        self.hc_counter = 0;
     }
 
     pub fn sample(&mut self, n_max: u32, n_att: u32, e_att: u32) {
@@ -60,6 +68,7 @@ impl PwrSampler {
             for _ in 0..n_att {
                 let start = random_solution(n as u16, None, true);
                 let (solution, s_len) = (self.hillclimb_function)(&start, distance_matrix);
+                self.hc_counter += 1;
                 match self.solutions.get(&start) {
                     Some(_) => { /*do nothing if solution is already in the map */ }
                     None => {
@@ -77,6 +86,7 @@ impl PwrSampler {
             for _ in 0..e_att {
                 let start = mutate(s.0, 2, &mut self.rng);
                 let new_s = (self.hillclimb_function)(&start, distance_matrix);
+                self.hc_counter += 1;
                 match self.solutions.get(&new_s.0) {
                     Some(new_s) => match self.edges.get_mut(&((s.1).0, new_s.0)) {
                         Some(edge) => *edge += 1,
@@ -92,6 +102,10 @@ impl PwrSampler {
                 }
             }
         }
+    }
+
+    pub fn get_hc_calls(&self) -> u64 {
+        self.hc_counter
     }
 
     pub fn get_samples(&self) -> (&NodeMap, &EdgeMap) {
