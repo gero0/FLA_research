@@ -12,7 +12,7 @@ use tsptools::helpers::random_solution;
 
 use crate::helpers::mutate;
 
-use super::{EdgeMap, HillclimbFunction, NodeMap};
+use super::{EdgeMap, HillclimbFunction, NodeMap, two_opt_besti, two_opt_firsti};
 
 //TODO: try to parallelize
 // should be used with FIRST IMPROVEMENT two_opt
@@ -20,7 +20,6 @@ use super::{EdgeMap, HillclimbFunction, NodeMap};
 
 pub struct PwrSampler {
     distance_matrix: Vec<Vec<i32>>,
-    hillclimb_function: HillclimbFunction,
     rng: ChaCha8Rng,
     solutions: NodeMap,
     edges: EdgeMap,
@@ -30,7 +29,6 @@ pub struct PwrSampler {
 impl PwrSampler {
     pub fn new(
         distance_matrix: Vec<Vec<i32>>,
-        hillclimb_function: HillclimbFunction,
         seed: Option<u64>,
     ) -> Self {
         let rng = match seed {
@@ -40,7 +38,6 @@ impl PwrSampler {
 
         Self {
             distance_matrix,
-            hillclimb_function,
             rng,
             solutions: NodeMap::default(),
             edges: EdgeMap::default(),
@@ -67,13 +64,14 @@ impl PwrSampler {
         for _ in 0..n_max {
             for _ in 0..n_att {
                 let start = random_solution(n as u16, None, true);
-                let (solution, s_len) = (self.hillclimb_function)(&start, distance_matrix);
+                let (solution, s_len) = two_opt_besti(&start, distance_matrix);
                 self.hc_counter += 1;
                 match self.solutions.get(&start) {
                     Some(_) => { /*do nothing if solution is already in the map */ }
                     None => {
                         let id = last_id.fetch_add(1, Ordering::Relaxed);
                         self.solutions.insert(solution, (id, s_len));
+                        break;
                     }
                 }
             }
@@ -85,7 +83,7 @@ impl PwrSampler {
         for s in &self.solutions {
             for _ in 0..e_att {
                 let start = mutate(s.0, 2, &mut self.rng);
-                let new_s = (self.hillclimb_function)(&start, distance_matrix);
+                let new_s = two_opt_firsti(&start, distance_matrix);
                 self.hc_counter += 1;
                 match self.solutions.get(&new_s.0) {
                     Some(new_s) => match self.edges.get_mut(&((s.1).0, new_s.0)) {

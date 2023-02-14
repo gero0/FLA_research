@@ -1,44 +1,38 @@
 from numpy import append
-from tsp_samplers import SnowballSampler, PwrSampler
 import igraph as ig
 from igraph import Graph
 from helpers import create_distance_matrix, split_edge_data
 import tsplib95 as tsp
 import matplotlib.pyplot as plt
+import json
+from os import listdir
+from os.path import isfile, join
+import natsort
 
 from stats import subsinks_count
 
-problem = tsp.load('./data/burma14.tsp')
 
-m = create_distance_matrix(problem)
+def main():
+    path = "snowball_latest"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    files = natsort.natsorted(files)
 
-s = SnowballSampler(100, 5, 3, 2, m, "twooptfi", 2000)
+    ss_x = []
+    ss_y = []
 
-# s = PwrSampler(m, "twooptfi", 2000)
+    for file in files[98:]:
+        with open(join(path, file)) as f:
+            print(f"Now procesing file {file}")
+            f = json.load(f)
+            ss_x.append(f["hc_count"])
+            v = subsinks_count(f['nodes'], f['edges'])
+            ss_y.append(v)
 
-x = []
-y = []
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
 
-for i in range (0, 100):
-    # s.sample(100, 100, 100)
-    s.sample()
-    nodes, edges = s.get_results()
-    # (edge_list, weight_list) = split_edge_data(edges)
-    # g = Graph(n=len(nodes), edges=edge_list, edge_attrs={'weight': weight_list, "label" : weight_list})
-    hc = s.get_hc_calls()
-    x.append(hc)
-    # y.append(g.radius())
-    y.append(subsinks_count(nodes, edges))
+    ax1.scatter(ss_x, ss_y, s=10, c='b', marker="s", label='snowball')
+    plt.savefig("fig.png")
 
-plt.scatter(x, y)
-plt.savefig("fig.png")
-
-# s = SnowballSampler(100, 50, 3, 2, m, "hc", 2000)
-# s.sample()
-# nodes, edges = s.get_results()
-
-
-# g = Graph(n=len(nodes), edges=edge_list, edge_attrs={'weight': weight_list, "label" : weight_list})
-# ig.plot(g, target="graph.pdf")
-
-# print(g)
+if __name__ == "__main__":
+    main()

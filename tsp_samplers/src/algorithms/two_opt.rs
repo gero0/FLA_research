@@ -64,3 +64,21 @@ fn two_opt_base(
     let len = tour_len(&tour, distance_matrix);
     (tour, len)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn two_opt_test() {
+        let starting_tour = vec![1, 0, 3, 4];
+        let distance_matrix = vec![
+            vec![0, 107, 241, 190, 124],
+            vec![107, 0, 148, 137, 88],
+            vec![241, 148, 0, 374, 171],
+            vec![190, 137, 374, 0, 202],
+            vec![124, 88, 171, 202, 0],
+        ];
+        println! {"{:?}", two_opt_besti(&starting_tour, &distance_matrix)};
+        assert_eq!(0, 1);
+    }
+}
