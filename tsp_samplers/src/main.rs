@@ -3,13 +3,11 @@ mod helpers;
 mod ser;
 
 use algorithms::{
-    exhaustive_sampler::{self, ExhaustiveSampler},
     hillclimb::hillclimb_steepest,
     snowball_sampler::SnowballSampler,
     PwrSampler,
 };
 use clap::{Parser, Subcommand};
-use std::fmt::Write;
 
 use tsptools::parsers::{parse_tsp_file, TspFile};
 
