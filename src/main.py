@@ -6,7 +6,7 @@ import natsort
 import pandas as pd
 import json
 from igraph import Graph
-from helpers import split_edge_data
+from helpers import split_edge_data, all_stats
 
 from stats import *
 
@@ -84,11 +84,6 @@ def main():
                         help="Name of output file",
                         required=False)
     args = parser.parse_args()
-
-    all_stats = [
-        "num_subsinks", "edge_to_node", "distLO", "conrel", "assortativity",
-        "clustering", "cliques", "density"
-    ]
 
     path = args.dirname
     stats = args.stats
