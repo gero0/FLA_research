@@ -2,6 +2,7 @@ from ctypes import resize
 from os import listdir
 from os.path import isfile, join
 
+import argparse
 import natsort
 import pandas as pd
 import numpy as np
@@ -25,18 +26,18 @@ def process_file(path):
         print(f"Now procesing file {path}")
         f = json.load(f)
 
-        nodes = f['nodes']
+        nodes = f["nodes"]
         nodes.sort(key=lambda x: x[2])
 
-        edges = f['edges']
+        edges = f["edges"]
 
-        return (nodes, edges, f['time_ms'], f['hc_count'])
+        return (nodes, edges, f["time_ms"], f["hc_count"])
 
 
 def calculate_stats(nodes, edges, stats):
     results = {}
-    results['node_count'] = len(nodes)
-    results['edge_count'] = len(edges)
+    results["node_count"] = len(nodes)
+    results["edge_count"] = len(edges)
 
     if "num_subsinks" in stats:
         results["num_subsinks"] = subsinks_count(nodes, edges)
@@ -54,13 +55,13 @@ def calculate_stats(nodes, edges, stats):
     (edge_list, weight_list) = split_edge_data(edges)
     g = Graph(n=len(nodes),
               edges=edge_list,
-              edge_attrs={'weight': weight_list})
+              edge_attrs={"weight": weight_list})
 
     if "assortativity" in stats:
         results["assortativity"] = g.assortativity_degree()
 
     if "clustering" in stats:
-        results['clustering'] = g.transitivity_undirected()
+        results["clustering"] = g.transitivity_undirected()
 
     if "cliques" in stats:
         results["cliques"] = g.clique_number()
@@ -72,20 +73,44 @@ def calculate_stats(nodes, edges, stats):
 
 
 def main():
+    parser = argparse.ArgumentParser(prog="lonstats",
+                                     description="What the program does")
+    parser.add_argument("dirname",
+                        help="Name of directory containig input files")
+    parser.add_argument(
+        "-s",
+        "--stats",
+        nargs="+",
+        help="Stats to calculate. Leave empty to calculate all",
+        required=False)
+    parser.add_argument("-o", "--output", help="Name of output file", required=False)
+    args = parser.parse_args()
+
+    all_stats = [
+        "num_subsinks", "edge_to_node", "distLO", "conrel", "assortativity",
+        "clustering", "cliques", "density"
+    ]
+
+    path = args.dirname
+    stats = args.stats
+    output = args.output
+
+    if output is None:
+        output = "results.csv"
+
+    if stats is None:
+        stats = all_stats
+
     df = pd.DataFrame()
-    path = "snowball_latest"
     files = load(path)
     for index, file in enumerate(files):
         nodes, edges, time, hc_count = process_file(join(path, file))
-        row = {'time_ms': time, 'hc_count': hc_count}
-        results = calculate_stats(nodes, edges, [
-            'edge_to_node', 'distLO', 'conrel', 'assortativity', 'clustering',
-            'cliques', 'density'
-        ])
+        row = {"time_ms": time, "hc_count": hc_count}
+        results = calculate_stats(nodes, edges, stats)
         row = row | results
         df = pd.concat([df, pd.DataFrame([row], index=[index])])
 
-    df.to_csv("results.csv", sep=';')
+    df.to_csv(output, sep=";")
 
 
 if __name__ == "__main__":
