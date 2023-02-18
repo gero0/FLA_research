@@ -1,14 +1,10 @@
-from ctypes import resize
 from os import listdir
 from os.path import isfile, join
 
 import argparse
 import natsort
 import pandas as pd
-import numpy as np
 import json
-import matplotlib.pyplot as plt
-import igraph as ig
 from igraph import Graph
 from helpers import split_edge_data
 
@@ -83,7 +79,10 @@ def main():
         nargs="+",
         help="Stats to calculate. Leave empty to calculate all",
         required=False)
-    parser.add_argument("-o", "--output", help="Name of output file", required=False)
+    parser.add_argument("-o",
+                        "--output",
+                        help="Name of output file",
+                        required=False)
     args = parser.parse_args()
 
     all_stats = [
