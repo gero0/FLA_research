@@ -128,14 +128,4 @@ if dirname is None:
 
 pathlib.Path(dirname).mkdir(parents=True, exist_ok=True)
 
-matrix = calc_dist_matrix(points)
-write_matrix(matrix, f"{dirname}/matrix.txt")
-write_points(matrix, f"{dirname}/points.txt")
-
-img = Image.new(mode="RGB",
-                size=(max_x + abs(min_x) + 1, max_y + abs(min_y) + 1))
-
-for point in remapped:
-    img.putpixel(point, (255, 255, 255))
-
-img.save(f"{dirname}/vis.png")
+save_res(dirname, points, max_x + abs(min_x) + 1, max_y + abs(min_y) + 1)

@@ -42,15 +42,4 @@ dirname = args.output
 if dirname is None:
     dirname = "uniform_output"
 
-pathlib.Path(dirname).mkdir(parents=True, exist_ok=True)
-
-matrix = calc_dist_matrix(points)
-write_matrix(matrix, f"{dirname}/matrix.txt")
-write_points(matrix, f"{dirname}/points.txt")
-
-img = Image.new(mode="RGB", size=(MaxD, MaxD))
-
-for point in points:
-    img.putpixel(point, (255, 255, 255))
-
-img.save(f"{dirname}/vis.png")
+save_res(dirname, points, MaxD, MaxD)

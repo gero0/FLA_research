@@ -1,4 +1,6 @@
 from math import sqrt
+import pathlib
+from PIL import Image
 
 
 def find_extremes(points):
@@ -49,3 +51,17 @@ def write_points(points, fname):
     with open(fname, 'w+') as f:
         for i, point in enumerate(points):
             f.write(f"{i} {point[0]} {point[1]}\n")
+
+def save_res(dirname, points, max_x, max_y):
+    pathlib.Path(dirname).mkdir(parents=True, exist_ok=True)
+
+    matrix = calc_dist_matrix(points)
+    write_matrix(matrix, f"{dirname}/matrix.txt")
+    write_points(matrix, f"{dirname}/points.txt")
+
+    img = Image.new(mode="RGB", size=(max_x, max_y))
+
+    for point in points:
+        img.putpixel(point, (255, 255, 255))
+
+    img.save(f"{dirname}/vis.png")
