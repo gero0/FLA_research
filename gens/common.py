@@ -39,11 +39,16 @@ def calc_dist_matrix(points):
 
     return matrix
 
-def write_matrix(matrix, fname):
+def write_matrix(matrix, fname, name):
     with open(fname, 'w+') as f:
-        for row in matrix:
-            for element in row:
-                f.write(f"{element} ")
+        f.write(f"{name}\n")
+        f.write(f"{len(matrix)}\n")
+        for y, row in enumerate(matrix):
+            for x, element in enumerate(row):
+                if y == x:
+                    f.write("0 ")
+                else:
+                    f.write(f"{element} ")
             f.write("\n")
 
 
@@ -52,11 +57,11 @@ def write_points(points, fname):
         for i, point in enumerate(points):
             f.write(f"{i} {point[0]} {point[1]}\n")
 
-def save_res(dirname, points, max_x, max_y):
+def save_res(dirname, points, max_x, max_y, name):
     pathlib.Path(dirname).mkdir(parents=True, exist_ok=True)
 
     matrix = calc_dist_matrix(points)
-    write_matrix(matrix, f"{dirname}/matrix.txt")
+    write_matrix(matrix, f"{dirname}/matrix.txt", name)
     write_points(matrix, f"{dirname}/points.txt")
 
     img = Image.new(mode="RGB", size=(max_x, max_y))

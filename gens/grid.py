@@ -52,4 +52,4 @@ dirname = args.output
 if dirname is None:
     dirname = "grid_output"
 
-save_res(dirname, points, max_x + 1, max_y + 1)
+save_res(dirname, points, max_x + 1, max_y + 1, f"grid_{N}")

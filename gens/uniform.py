@@ -42,4 +42,4 @@ dirname = args.output
 if dirname is None:
     dirname = "uniform_output"
 
-save_res(dirname, points, MaxD, MaxD)
+save_res(dirname, points, MaxD, MaxD, f"uniform_{N}")

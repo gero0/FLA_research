@@ -128,4 +128,5 @@ if dirname is None:
 
 pathlib.Path(dirname).mkdir(parents=True, exist_ok=True)
 
-save_res(dirname, points, max_x + abs(min_x) + 1, max_y + abs(min_y) + 1)
+save_res(dirname, points, max_x + abs(min_x) + 1, max_y + abs(min_y) + 1,
+         f"cliques_{N}")
