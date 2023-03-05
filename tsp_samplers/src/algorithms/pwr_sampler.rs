@@ -8,9 +8,8 @@ use std::{
 
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
-use tsptools::helpers::random_solution;
 
-use crate::helpers::mutate;
+use crate::helpers::{mutate, random_solution};
 
 use super::{EdgeMap, HillclimbFunction, NodeMap, two_opt_besti, two_opt_firsti};
 

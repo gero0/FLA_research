@@ -463,16 +463,6 @@ dependencies = [
  "rand",
  "rand_chacha",
  "rustc-hash",
- "tsptools",
-]
-
-[[package]]
-name = "tsptools"
-version = "0.1.0"
-source = "git+https://github.com/gero0/tsptools#3ebaac27e7889c30b922eb3ce1c290b5f52e9695"
-dependencies = [
- "rand",
- "rand_chacha",
 ]
 
 [[package]]

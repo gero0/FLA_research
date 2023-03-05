@@ -8,9 +8,7 @@ use algorithms::{
     PwrSampler,
 };
 use clap::{Parser, Subcommand};
-
-use tsptools::parsers::{parse_tsp_file, TspFile};
-
+use helpers::{parse_intermediate_format, TspFile};
 use crate::ser::save_json;
 
 const PBAR_W: u32 = 32;
@@ -45,7 +43,9 @@ enum Commands {
 fn main() {
     let cli = Cli::parse();
 
-    let file = parse_tsp_file(cli.input_file.as_str()).unwrap();
+    let file = parse_intermediate_format(cli.input_file.as_str()).unwrap();
+
+    println!("{:?}", file);
 
     match cli.algorithm {
         Commands::Snowball {

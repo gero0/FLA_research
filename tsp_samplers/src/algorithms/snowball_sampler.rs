@@ -1,9 +1,7 @@
 use rand::{distributions::Uniform, prelude::Distribution, RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use rustc_hash::{FxHashMap, FxHashSet};
-use tsptools::helpers::{random_solution, tour_len};
-
-use crate::helpers::mutate;
+use crate::helpers::{mutate, random_solution, tour_len};
 
 use super::{EdgeMap, HillclimbFunction, NodeMap};
 
