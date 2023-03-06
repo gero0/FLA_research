@@ -2,14 +2,11 @@ mod algorithms;
 mod helpers;
 mod ser;
 
-use algorithms::{
-    hillclimb::hillclimb_steepest,
-    snowball_sampler::SnowballSampler,
-    PwrSampler,
-};
+use crate::ser::save_json;
+use algorithms::{hillclimb::hillclimb_steepest, snowball_sampler::SnowballSampler, PwrSampler};
 use clap::{Parser, Subcommand};
 use helpers::{parse_intermediate_format, TspFile};
-use crate::ser::save_json;
+use std::time::{Duration, Instant};
 
 const PBAR_W: u32 = 32;
 
@@ -71,9 +68,13 @@ fn sample_pwr(file: TspFile, n_max: u32, n_att: u32, e_att: u32, iters: u32, see
     let _ = std::fs::create_dir(format! {"pwr_{}", dt});
     let _ = std::fs::create_dir("pwr_latest");
 
+    let mut time_ms = 0;
+
     for i in 0..iters {
         print_progress_bar(i + 1, iters, PBAR_W);
+        let start = Instant::now();
         pwrsampler.sample(n_max, n_att, e_att);
+        time_ms += start.elapsed().as_millis();
         let (nodes, edges) = pwrsampler.get_samples();
 
         let path = format!("pwr_latest/samples_{}.json", i);
@@ -81,7 +82,14 @@ fn sample_pwr(file: TspFile, n_max: u32, n_att: u32, e_att: u32, iters: u32, see
         let paths = [path, path2];
 
         for path in paths {
-            save_json(nodes, edges, pwrsampler.get_hc_calls(), 0, path.as_str()).unwrap();
+            save_json(
+                nodes,
+                edges,
+                pwrsampler.get_hc_calls(),
+                time_ms,
+                path.as_str(),
+            )
+            .unwrap();
         }
     }
 }
@@ -109,9 +117,15 @@ fn sample_snowball(
     let _ = std::fs::create_dir(format! {"snowball_{}", dt});
     let _ = std::fs::create_dir("snowball_latest");
 
+    let mut time_ms = 0;
+
     for i in 0..iters {
         print_progress_bar(i + 1, iters, PBAR_W);
+
+        let start = Instant::now();
         snowball_sampler.sample();
+        time_ms += start.elapsed().as_millis();
+
         let (nodes, edges) = snowball_sampler.get_samples();
 
         let path = format!("snowball_latest/samples_{}.json", i);
@@ -123,7 +137,7 @@ fn sample_snowball(
                 nodes,
                 edges,
                 snowball_sampler.get_hc_calls(),
-                0,
+                time_ms,
                 path.as_str(),
             )
             .unwrap();

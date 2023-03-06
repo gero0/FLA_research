@@ -6,7 +6,7 @@ pub fn save_json(
     nodes: &NodeMap,
     edges: &EdgeMap,
     hc_count: u64,
-    time_ms: u64,
+    time_ms: u128,
     path: &str,
 ) -> Result<(), Box<dyn Error>> {
     let nodes = nodes.into_iter();
