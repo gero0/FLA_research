@@ -51,19 +51,44 @@ def calculate_stats(nodes, edges, stats):
     (edge_list, weight_list) = split_edge_data(edges)
     g = Graph(n=len(nodes),
               edges=edge_list,
-              edge_attrs={"weight": weight_list})
+              edge_attrs={"weight": weight_list},
+              directed=True)
 
-    if "assortativity" in stats:
-        results["assortativity"] = g.assortativity_degree()
+    if "assortativity_deg" in stats:
+        results["assortativity_deg"] = g.assortativity_degree()
 
     if "clustering" in stats:
         results["clustering"] = g.transitivity_undirected()
 
-    if "cliques" in stats:
-        results["cliques"] = g.clique_number()
-
     if "density" in stats:
         results["density"] = g.density()
+
+    if "girth" in stats:
+        results["girth"] = g.girth()
+
+    if "radius" in stats:
+        results["radius"] = g.radius()
+
+    if "avg_path_len" in stats:
+        results["avg_path_len"] = g.average_path_length()
+
+    if "cliques_num" in stats:
+        results["cliques_num"] = g.clique_number()
+
+    if "maximal_cliques_num" in stats:
+        results["maximal_cliques_num"] = len(g.maximal_cliques())
+
+    if "largest_clique_size" in stats:
+        results["largest_clique_size"] = len(g.largest_cliques()[0])
+
+    if "motifs_randesu_no" in stats:
+        results["motifs_randesu_no"] = g.motifs_randesu_no()
+
+    #mincut_value - long time, keeps 1.0 value
+
+    if "reciprocity" in stats:
+        results["reciprocity"] = g.reciprocity()
+
 
     return results
 
@@ -105,6 +130,8 @@ def main():
         df = pd.concat([df, pd.DataFrame([row], index=[index])])
 
     df.to_csv(output, sep=";")
+    corr = df.corr()
+    corr.to_csv("corr_" + output, sep=";")
 
 
 if __name__ == "__main__":
