@@ -3,7 +3,7 @@ mod helpers;
 mod ser;
 
 use crate::ser::save_json;
-use algorithms::{hillclimb::hillclimb_steepest, snowball_sampler::SnowballSampler, PwrSampler};
+use algorithms::{hillclimb::hillclimb_steepest, snowball_sampler::SnowballSampler, PwrSampler, exhaustive_sampler::ExhaustiveSampler};
 use clap::{Parser, Subcommand};
 use helpers::{parse_intermediate_format, TspFile};
 use std::time::{Duration, Instant};
@@ -35,6 +35,9 @@ enum Commands {
         e_att: u32,
         seed: Option<u64>,
     },
+    Exhaustive {
+
+    }
 }
 
 fn main() {
@@ -58,7 +61,12 @@ fn main() {
             e_att,
             seed,
         } => sample_pwr(file, n_max, n_att, e_att, cli.iters, seed),
+        Commands::Exhaustive {  } => sample_exhaustive(file),
     }
+}
+
+fn sample_exhaustive(file: TspFile) {
+    let sampler = ExhaustiveSampler::new(file.distance_matrix);
 }
 
 fn sample_pwr(file: TspFile, n_max: u32, n_att: u32, e_att: u32, iters: u32, seed: Option<u64>) {

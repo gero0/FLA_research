@@ -79,40 +79,6 @@ pub fn parse_intermediate_format(path: &str) -> Result<TspFile, Box<dyn Error>> 
     Ok(file)
 }
 
-pub fn generate_perms(set: &[u16], preserve_first: bool) -> Vec<Vec<u16>> {
-    let mut perms = vec![];
-    let mut set = set.to_owned();
-
-    let n = set.len();
-
-    if preserve_first {
-        heap_perm(&mut set[1..], n - 1, &mut perms);
-        for perm in perms.iter_mut() {
-            let new = vec![set[0]];
-            *perm = [new, perm.clone()].concat();
-        }
-    } else {
-        heap_perm(&mut set, n, &mut perms);
-    }
-
-    perms
-}
-
-fn heap_perm(a: &mut [u16], k: usize, perms_vec: &mut Vec<Vec<u16>>) {
-    if k == 1 {
-        perms_vec.push(a.to_vec());
-    } else {
-        for i in 0..k {
-            heap_perm(a, k - 1, perms_vec);
-            if (k % 2) == 0 {
-                a.swap(i, k - 1);
-            } else {
-                a.swap(0, k - 1);
-            }
-        }
-    }
-}
-
 pub fn mutate(perm: &Vec<u16>, n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<u16> {
     let mut mutation = perm.to_owned();
     let mut i = 0;

@@ -7,6 +7,7 @@ pub type EdgeMap = FxHashMap<(u16, u16), i32>;
 pub mod hillclimb;
 pub mod pwr_sampler;
 pub mod snowball_sampler;
+pub mod exhaustive_sampler;
 pub mod two_opt;
 
 pub use hillclimb::hillclimb_steepest;
