@@ -66,7 +66,19 @@ fn main() {
 }
 
 fn sample_exhaustive(file: TspFile) {
-    let sampler = ExhaustiveSampler::new(file.distance_matrix);
+    let mut sampler = ExhaustiveSampler::new(file.distance_matrix);
+    sampler.sample();
+    let (nodes, edges) = sampler.get_samples();
+
+    let _ = std::fs::create_dir("exhaustive_latest");
+    let path = format!("exhaustive_latest/samples.json");
+    save_json(
+        nodes,
+        edges,
+        0,
+        0,
+        path.as_str(),
+    ).unwrap();
 }
 
 fn sample_pwr(file: TspFile, n_max: u32, n_att: u32, e_att: u32, iters: u32, seed: Option<u64>) {
