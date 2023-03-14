@@ -14,3 +14,8 @@ pub use hillclimb::hillclimb_steepest;
 pub use pwr_sampler::PwrSampler;
 pub use snowball_sampler::SnowballSampler;
 pub use two_opt::{two_opt_besti, two_opt_firsti};
+
+pub trait SamplingAlg {
+    fn get_hc_calls(&self) -> u64;
+    fn get_samples(&self) -> (&NodeMap, &EdgeMap);
+}

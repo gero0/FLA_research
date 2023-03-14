@@ -5,7 +5,7 @@ mod ser;
 use crate::ser::save_json;
 use algorithms::{
     exhaustive_sampler::ExhaustiveSampler, hillclimb::hillclimb_steepest,
-    snowball_sampler::SnowballSampler, PwrSampler,
+    snowball_sampler::SnowballSampler, PwrSampler, SamplingAlg,
 };
 use clap::{Parser, Subcommand};
 use helpers::{parse_intermediate_format, TspFile};
@@ -41,6 +41,28 @@ enum Commands {
     Exhaustive {},
 }
 
+fn save_sampling_results(
+    sampler: &impl SamplingAlg,
+    time_ms: u128,
+    dirname: &str,
+    dt: &str,
+    i: u32,
+) {
+    let dir = format!("{}_{}", dirname, dt);
+    let dir_latest = format!("{}_latest", dirname);
+
+    let _ = std::fs::create_dir(&dir);
+    let _ = std::fs::create_dir(&dir_latest);
+    let path = format!("{}/samples_{}.json", &dir, i);
+    let path2 = format!("{}/samples_{}.json", &dir_latest, i);
+
+    let (nodes, edges) = sampler.get_samples();
+    let hc_c = sampler.get_hc_calls();
+
+    save_json(nodes, edges, hc_c, time_ms, path.as_str()).unwrap();
+    save_json(nodes, edges, hc_c, time_ms, path2.as_str()).unwrap();
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -71,50 +93,22 @@ fn sample_exhaustive(file: TspFile) {
     let start = Instant::now();
     sampler.sample();
     let time_ms = start.elapsed().as_millis();
-    let (nodes, edges) = sampler.get_samples();
-
-    let hc_c = sampler.get_hc_calls();
-
     let dt = chrono::offset::Local::now().to_string();
-    let _ = std::fs::create_dir(format! {"exhaustive_{}", dt});
-    let _ = std::fs::create_dir("exhaustive_latest");
-    let path = format!("exhaustive_latest/samples.json");
-    let path2 = format!("exhaustive_latest/samples.json");
 
-    save_json(nodes, edges, hc_c, time_ms, path.as_str()).unwrap();
-    save_json(nodes, edges, hc_c, time_ms, path2.as_str()).unwrap();
+    save_sampling_results(&sampler, time_ms, "exhaustive", &dt, 0);
 }
 
 fn sample_pwr(file: TspFile, n_max: u32, n_att: u32, e_att: u32, iters: u32, seed: Option<u64>) {
-    let mut pwrsampler = PwrSampler::new(file.distance_matrix, seed);
-
+    let mut sampler = PwrSampler::new(file.distance_matrix, seed);
     let dt = chrono::offset::Local::now().to_string();
-    let _ = std::fs::create_dir(format! {"pwr_{}", dt});
-    let _ = std::fs::create_dir("pwr_latest");
-
     let mut time_ms = 0;
 
     for i in 0..iters {
         print_progress_bar(i + 1, iters, PBAR_W);
         let start = Instant::now();
-        pwrsampler.sample(n_max, n_att, e_att);
+        sampler.sample(n_max, n_att, e_att);
         time_ms += start.elapsed().as_millis();
-        let (nodes, edges) = pwrsampler.get_samples();
-
-        let path = format!("pwr_latest/samples_{}.json", i);
-        let path2 = format!("pwr_{}/samples_{}.json", dt, i);
-        let paths = [path, path2];
-
-        for path in paths {
-            save_json(
-                nodes,
-                edges,
-                pwrsampler.get_hc_calls(),
-                time_ms,
-                path.as_str(),
-            )
-            .unwrap();
-        }
+        save_sampling_results(&sampler, time_ms, "pwr", &dt, i);
     }
 }
 
@@ -127,7 +121,7 @@ fn sample_snowball(
     iters: u32,
     seed: Option<u64>,
 ) {
-    let mut snowball_sampler = SnowballSampler::new(
+    let mut sampler = SnowballSampler::new(
         walk_len,
         n_edges,
         depth,
@@ -138,34 +132,16 @@ fn sample_snowball(
     );
 
     let dt = chrono::offset::Local::now().to_string();
-    let _ = std::fs::create_dir(format! {"snowball_{}", dt});
-    let _ = std::fs::create_dir("snowball_latest");
-
     let mut time_ms = 0;
 
     for i in 0..iters {
         print_progress_bar(i + 1, iters, PBAR_W);
 
         let start = Instant::now();
-        snowball_sampler.sample();
+        sampler.sample();
         time_ms += start.elapsed().as_millis();
 
-        let (nodes, edges) = snowball_sampler.get_samples();
-
-        let path = format!("snowball_latest/samples_{}.json", i);
-        let path2 = format!("snowball_{}/samples_{}.json", dt, i);
-        let paths = [path, path2];
-
-        for path in paths {
-            save_json(
-                nodes,
-                edges,
-                snowball_sampler.get_hc_calls(),
-                time_ms,
-                path.as_str(),
-            )
-            .unwrap();
-        }
+        save_sampling_results(&sampler, time_ms, "snowball", &dt, i)
     }
 }
 

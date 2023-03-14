@@ -7,7 +7,7 @@ use std::{
 
 use crate::{algorithms::hillclimb::hillclimb_steepest, helpers::cmp_permutations};
 
-use super::{EdgeMap, NodeMap};
+use super::{EdgeMap, NodeMap, SamplingAlg};
 
 pub struct ExhaustiveSampler {
     distance_matrix: Vec<Vec<i32>>,
@@ -75,17 +75,21 @@ impl ExhaustiveSampler {
             }
         }
     }
-    pub fn get_samples(&self) -> (&NodeMap, &EdgeMap) {
-        (&self.nodes, &self.edges)
-    }
 
-    pub fn get_hc_calls(&self) -> u64 {
-        self.hc_counter
-    }
 
     fn get_next_id(&mut self) -> u16 {
         self.last_node_id += 1;
         self.last_node_id - 1
+    }
+}
+
+impl SamplingAlg for ExhaustiveSampler {
+    fn get_samples(&self) -> (&NodeMap, &EdgeMap) {
+        (&self.nodes, &self.edges)
+    }
+
+    fn get_hc_calls(&self) -> u64 {
+        self.hc_counter
     }
 }
 

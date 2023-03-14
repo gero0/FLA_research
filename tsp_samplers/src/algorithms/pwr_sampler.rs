@@ -1,17 +1,11 @@
-use std::{
-    sync::{
-        atomic::{AtomicU16, Ordering},
-        Mutex,
-    },
-    thread::{self, available_parallelism},
-};
+use std::sync::atomic::{AtomicU16, Ordering};
 
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 
 use crate::helpers::{mutate, random_solution};
 
-use super::{EdgeMap, HillclimbFunction, NodeMap, two_opt_besti, two_opt_firsti};
+use super::{two_opt_besti, two_opt_firsti, EdgeMap, NodeMap, SamplingAlg};
 
 //TODO: try to parallelize
 // should be used with FIRST IMPROVEMENT two_opt
@@ -20,16 +14,13 @@ use super::{EdgeMap, HillclimbFunction, NodeMap, two_opt_besti, two_opt_firsti};
 pub struct PwrSampler {
     distance_matrix: Vec<Vec<i32>>,
     rng: ChaCha8Rng,
-    solutions: NodeMap,
+    nodes: NodeMap,
     edges: EdgeMap,
     hc_counter: u64,
 }
 
 impl PwrSampler {
-    pub fn new(
-        distance_matrix: Vec<Vec<i32>>,
-        seed: Option<u64>,
-    ) -> Self {
+    pub fn new(distance_matrix: Vec<Vec<i32>>, seed: Option<u64>) -> Self {
         let rng = match seed {
             Some(seed) => ChaCha8Rng::seed_from_u64(seed),
             None => ChaCha8Rng::from_entropy(),
@@ -38,14 +29,14 @@ impl PwrSampler {
         Self {
             distance_matrix,
             rng,
-            solutions: NodeMap::default(),
+            nodes: NodeMap::default(),
             edges: EdgeMap::default(),
             hc_counter: 0,
         }
     }
 
     pub fn reset(&mut self) {
-        self.solutions = NodeMap::default();
+        self.nodes = NodeMap::default();
         self.edges = EdgeMap::default();
         self.hc_counter = 0;
     }
@@ -65,11 +56,11 @@ impl PwrSampler {
                 let start = random_solution(n as u16, None, true);
                 let (solution, s_len) = two_opt_besti(&start, distance_matrix);
                 self.hc_counter += 1;
-                match self.solutions.get(&start) {
+                match self.nodes.get(&start) {
                     Some(_) => { /*do nothing if solution is already in the map */ }
                     None => {
                         let id = last_id.fetch_add(1, Ordering::Relaxed);
-                        self.solutions.insert(solution, (id, s_len));
+                        self.nodes.insert(solution, (id, s_len));
                         break;
                     }
                 }
@@ -79,12 +70,12 @@ impl PwrSampler {
 
     fn sample_edges(&mut self, e_att: u32) {
         let distance_matrix = &self.distance_matrix;
-        for s in &self.solutions {
+        for s in &self.nodes {
             for _ in 0..e_att {
                 let start = mutate(s.0, 2, &mut self.rng);
                 let new_s = two_opt_firsti(&start, distance_matrix);
                 self.hc_counter += 1;
-                match self.solutions.get(&new_s.0) {
+                match self.nodes.get(&new_s.0) {
                     Some(new_s) => match self.edges.get_mut(&((s.1).0, new_s.0)) {
                         Some(edge) => *edge += 1,
                         None => {
@@ -100,12 +91,14 @@ impl PwrSampler {
             }
         }
     }
+}
 
-    pub fn get_hc_calls(&self) -> u64 {
-        self.hc_counter
+impl SamplingAlg for PwrSampler {
+    fn get_samples(&self) -> (&NodeMap, &EdgeMap) {
+        (&self.nodes, &self.edges)
     }
 
-    pub fn get_samples(&self) -> (&NodeMap, &EdgeMap) {
-        (&self.solutions, &self.edges)
+    fn get_hc_calls(&self) -> u64 {
+        self.hc_counter
     }
 }
