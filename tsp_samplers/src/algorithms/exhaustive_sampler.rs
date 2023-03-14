@@ -1,69 +1,91 @@
+use permutations_iter::Permutations;
+use rustc_hash::FxHashMap;
 use std::{
     fs::File,
     io::{BufRead, BufReader, Write},
-    sync::{
-        atomic::{AtomicU16, Ordering},
-        Mutex,
-    },
-    thread::{self, available_parallelism},
 };
-
-use permutations_iter::Permutations;
 
 use crate::{algorithms::hillclimb::hillclimb_steepest, helpers::cmp_permutations};
 
-use super::{EdgeMap, HillclimbFunction, NodeMap};
+use super::{EdgeMap, NodeMap};
 
 pub struct ExhaustiveSampler {
     distance_matrix: Vec<Vec<i32>>,
     permpath: String,
-    solutions: NodeMap,
+    mut_d: u32,
+    nodes: NodeMap,
     edges: EdgeMap,
+    last_node_id: u16,
+    hc_counter: u64,
 }
 
 impl ExhaustiveSampler {
-    pub fn new(distance_matrix: Vec<Vec<i32>>) -> Self {
+    pub fn new(distance_matrix: Vec<Vec<i32>>, mut_d: u32) -> Self {
         let set: Vec<_> = (0..distance_matrix.len() as u16).collect();
         let permpath = String::from(generate_perms(&set));
 
         Self {
             distance_matrix,
             permpath,
-            solutions: NodeMap::default(),
+            mut_d,
+            nodes: NodeMap::default(),
             edges: EdgeMap::default(),
+            last_node_id: 0,
+            hc_counter: 0,
         }
     }
 
     pub fn sample(&mut self) {
         let distance_matrix = self.distance_matrix.clone();
-
-        let last_id = AtomicU16::new(0);
-
         let file = File::open(&self.permpath).unwrap();
-
         let lines = BufReader::new(file).lines();
 
-        //find local optima
+        //find all local optima by running hillclimb for every possible permutation.
+        //Save which LO the solution led to, we will need it to constuct LON edges
+        let mut pairs = FxHashMap::default();
 
         for line in lines {
-            let v = deserialize(&line.unwrap());
-            let (solution, s_len) = hillclimb_steepest(&v, &distance_matrix);
+            let solution = deserialize(&line.unwrap());
+            let (lo, s_len) = hillclimb_steepest(&solution, &distance_matrix);
+            self.hc_counter += 1;
+            pairs.insert(solution, lo.clone());
 
-            if self.solutions.get(&solution).is_none() {
-                let id = last_id.fetch_add(1, Ordering::Relaxed);
-                self.solutions.insert(solution.clone(), (id, s_len));
+            if self.nodes.get(&lo).is_none() {
+                let id = self.get_next_id();
+                self.nodes.insert(lo.clone(), (id, s_len));
             }
         }
 
-        for (ka, va) in self.solutions.iter() {
-            for (kb, vb) in self.solutions.iter() {
-                let dist = cmp_permutations(ka, kb) as i32;
-                self.edges.insert((va.0, vb.0), dist);
+        for (perm, lo) in pairs.iter() {
+            for other_lo in self.nodes.iter() {
+                //Compare with each local optimum in search space
+                let dist = cmp_permutations(perm, other_lo.0) as i32;
+                //If you can get to this optimum from current solution with mut_d swaps, add/update edge in LON
+                if dist < self.mut_d as i32 {
+                    let lo_id = self.nodes.get(lo).unwrap().0;
+                    match self.edges.get_mut(&(other_lo.1 .0, lo_id)) {
+                        Some(weight) => {
+                            *weight += 1;
+                        }
+                        None => {
+                            self.edges.insert((other_lo.1 .0, lo_id), 1);
+                        }
+                    };
+                }
             }
         }
     }
     pub fn get_samples(&self) -> (&NodeMap, &EdgeMap) {
-        (&self.solutions, &self.edges)
+        (&self.nodes, &self.edges)
+    }
+
+    pub fn get_hc_calls(&self) -> u64 {
+        self.hc_counter
+    }
+
+    fn get_next_id(&mut self) -> u16 {
+        self.last_node_id += 1;
+        self.last_node_id - 1
     }
 }
 
@@ -94,18 +116,3 @@ fn deserialize(line: &str) -> Vec<u16> {
     }
     perm
 }
-
-// fn heap_perm(a: &mut [u16], k: usize, perms_vec: &mut Vec<Vec<u16>>) {
-//     if k == 1 {
-//         perms_vec.push(a.to_vec());
-//     } else {
-//         for i in 0..k {
-//             heap_perm(a, k - 1, perms_vec);
-//             if (k % 2) == 0 {
-//                 a.swap(i, k - 1);
-//             } else {
-//                 a.swap(0, k - 1);
-//             }
-//         }
-//     }
-// }

@@ -3,10 +3,13 @@ mod helpers;
 mod ser;
 
 use crate::ser::save_json;
-use algorithms::{hillclimb::hillclimb_steepest, snowball_sampler::SnowballSampler, PwrSampler, exhaustive_sampler::ExhaustiveSampler};
+use algorithms::{
+    exhaustive_sampler::ExhaustiveSampler, hillclimb::hillclimb_steepest,
+    snowball_sampler::SnowballSampler, PwrSampler,
+};
 use clap::{Parser, Subcommand};
 use helpers::{parse_intermediate_format, TspFile};
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 const PBAR_W: u32 = 32;
 
@@ -35,9 +38,7 @@ enum Commands {
         e_att: u32,
         seed: Option<u64>,
     },
-    Exhaustive {
-
-    }
+    Exhaustive {},
 }
 
 fn main() {
@@ -61,24 +62,27 @@ fn main() {
             e_att,
             seed,
         } => sample_pwr(file, n_max, n_att, e_att, cli.iters, seed),
-        Commands::Exhaustive {  } => sample_exhaustive(file),
+        Commands::Exhaustive {} => sample_exhaustive(file),
     }
 }
 
 fn sample_exhaustive(file: TspFile) {
-    let mut sampler = ExhaustiveSampler::new(file.distance_matrix);
+    let mut sampler = ExhaustiveSampler::new(file.distance_matrix, 2);
+    let start = Instant::now();
     sampler.sample();
+    let time_ms = start.elapsed().as_millis();
     let (nodes, edges) = sampler.get_samples();
 
+    let hc_c = sampler.get_hc_calls();
+
+    let dt = chrono::offset::Local::now().to_string();
+    let _ = std::fs::create_dir(format! {"exhaustive_{}", dt});
     let _ = std::fs::create_dir("exhaustive_latest");
     let path = format!("exhaustive_latest/samples.json");
-    save_json(
-        nodes,
-        edges,
-        0,
-        0,
-        path.as_str(),
-    ).unwrap();
+    let path2 = format!("exhaustive_latest/samples.json");
+
+    save_json(nodes, edges, hc_c, time_ms, path.as_str()).unwrap();
+    save_json(nodes, edges, hc_c, time_ms, path2.as_str()).unwrap();
 }
 
 fn sample_pwr(file: TspFile, n_max: u32, n_att: u32, e_att: u32, iters: u32, seed: Option<u64>) {
