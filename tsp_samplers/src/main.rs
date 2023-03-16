@@ -89,7 +89,7 @@ fn main() {
 }
 
 fn sample_exhaustive(file: TspFile) {
-    let mut sampler = ExhaustiveSampler::new(file.distance_matrix, 2);
+    let mut sampler = ExhaustiveSampler::new(file.distance_matrix, 2, hillclimb_steepest);
     let start = Instant::now();
     sampler.sample();
     let time_ms = start.elapsed().as_millis();

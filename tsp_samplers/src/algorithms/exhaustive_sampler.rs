@@ -7,10 +7,11 @@ use std::{
 
 use crate::{algorithms::hillclimb::hillclimb_steepest, helpers::cmp_permutations};
 
-use super::{EdgeMap, NodeMap, SamplingAlg};
+use super::{EdgeMap, NodeMap, SamplingAlg, HillclimbFunction};
 
 pub struct ExhaustiveSampler {
     distance_matrix: Vec<Vec<i32>>,
+    hillclimb_alg: HillclimbFunction,
     permpath: String,
     mut_d: u32,
     nodes: NodeMap,
@@ -20,7 +21,7 @@ pub struct ExhaustiveSampler {
 }
 
 impl ExhaustiveSampler {
-    pub fn new(distance_matrix: Vec<Vec<i32>>, mut_d: u32) -> Self {
+    pub fn new(distance_matrix: Vec<Vec<i32>>, mut_d: u32, hillclimb_alg: HillclimbFunction) -> Self {
         let set: Vec<_> = (0..distance_matrix.len() as u16).collect();
         let permpath = String::from(generate_perms(&set));
 
@@ -32,6 +33,7 @@ impl ExhaustiveSampler {
             edges: EdgeMap::default(),
             last_node_id: 0,
             hc_counter: 0,
+            hillclimb_alg
         }
     }
 
@@ -46,7 +48,7 @@ impl ExhaustiveSampler {
 
         for line in lines {
             let solution = deserialize(&line.unwrap());
-            let (lo, s_len) = hillclimb_steepest(&solution, &distance_matrix);
+            let (lo, s_len) = (self.hillclimb_alg)(&solution, &distance_matrix);
             self.hc_counter += 1;
             pairs.insert(solution, lo.clone());
 
