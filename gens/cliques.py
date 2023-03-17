@@ -46,25 +46,32 @@ args = parser.parse_args()
 N = int(args.N)
 N_cliques = int(args.N_cliques)
 
-MinLocalSep = args.minld
-if MinLocalSep is None:
+if args.minld is None:
     MinLocalSep = 5
+else:
+    MinLocalSep = int(args.minld)
 
-MaxLocalSep = args.maxld
-if MaxLocalSep is None:
+if args.maxld is None:
     MaxLocalSep = 30
+else:
+    MaxLocalSep = int(args.maxld)
 
-MaxCliqueSep = args.maxcd
-if MaxCliqueSep is None:
+if args.maxcd is None:
     MaxCliqueSep = 300
+else:
+    MaxCliqueSep = int(args.maxcd)
 
-MinCliqueSep = args.mincd
-if MinCliqueSep is None:
+if args.mincd is None:
     MinCliqueSep = 100
+else:
+    MinCliqueSep = int(args.mincd)
 
 ppc = int(N / N_cliques)
 
 rng = np.random.default_rng()
+
+total_point_counter = 0
+MAX_RETRIES = 1000
 
 
 def to_cartesian(r, angle):
@@ -88,7 +95,6 @@ while (len(clique_centers) != N_cliques):
     #Check if it's far enough from existing cliques, if not, try again
     for clique in clique_centers:
         dist = sqrt((x - clique[0])**2 + (y - clique[1])**2)
-        print(dist)
         if (dist < MinCliqueSep):
             ok = False
             break
@@ -102,15 +108,36 @@ points = []
 
 for clique in clique_centers:
     for i in range(0, ppc):
-        r = rng.uniform(MinLocalSep, MaxLocalSep)
-        angle = rng.uniform(0, 2 * pi)
-        x, y = to_cartesian(r, angle)
+        if (total_point_counter < N):
+            retries = 0
+            while(retries < MAX_RETRIES):
+                r = rng.uniform(MinLocalSep, MaxLocalSep)
+                angle = rng.uniform(0, 2 * pi)
+                x, y = to_cartesian(r, angle)
 
-        c_x, c_y = clique
-        p_x = c_x + x
-        p_y = c_y + y
+                c_x, c_y = clique
+                p_x = c_x + x
+                p_y = c_y + y
 
-        points.append((p_x, p_y))
+                ok = True
+
+                for point in points:
+                    dist = sqrt((p_x - point[0])**2 + (p_y - point[1])**2)
+                    if (dist < MinLocalSep):
+                        ok = False
+                        break
+
+                if not ok:
+                    retries += 1
+                    continue
+
+                total_point_counter += 1
+                points.append((p_x, p_y))
+                break
+
+            if retries >= MAX_RETRIES:
+                print("ERROR: Could not generate problem with requested parameters, try decreasing min local sep or decreasing number of points")
+                exit()
 
 #Move point coordinates to start at 0
 min_x, max_x, min_y, max_y = find_extremes(points)
@@ -128,5 +155,5 @@ if dirname is None:
 
 pathlib.Path(dirname).mkdir(parents=True, exist_ok=True)
 
-save_res(dirname, points, max_x + abs(min_x) + 1, max_y + abs(min_y) + 1,
+save_res(dirname, remapped, max_x + abs(min_x) + 1, max_y + abs(min_y) + 1,
          f"cliques_{N}")
