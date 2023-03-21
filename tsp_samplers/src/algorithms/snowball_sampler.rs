@@ -18,7 +18,8 @@ pub struct SnowballSampler {
     edges: EdgeMap,
     walk_visited: FxHashSet<u16>,
     hc_counter: u64,
-    current_lo: Option<(Vec<u16>, i32)>,
+    oracle_counter: u128,
+    current_lo: Option<Vec<u16>>,
 }
 
 impl SnowballSampler {
@@ -49,13 +50,16 @@ impl SnowballSampler {
             edges: FxHashMap::default(),
             walk_visited: FxHashSet::default(),
             hc_counter: 0,
+            oracle_counter: 0,
             current_lo: None,
         }
     }
 
     fn climb(&mut self, start: &Vec<u16>) -> (Vec<u16>, i32) {
         self.hc_counter += 1;
-        return (self.hillclimb)(start, &self.distance_matrix);
+        let (perm, len, oracle) = (self.hillclimb)(start, &self.distance_matrix);
+        self.oracle_counter += oracle;
+        return (perm, len);
     }
 
     fn insert_node(&mut self, node: &Vec<u16>, len: i32) -> u16 {
@@ -73,19 +77,19 @@ impl SnowballSampler {
             );
             let (current_lo, lo_len) = self.climb(&start);
             self.insert_node(&current_lo, lo_len);
-            self.current_lo = Some((current_lo, lo_len));
+            self.current_lo = Some(current_lo);
         }
 
         for _ in 0..self.walk_len {
             let current_lo = self.current_lo.as_ref().unwrap().clone();
-            self.snowball(self.depth, &current_lo.0);
+            self.snowball(self.depth, &current_lo);
             let id = self
                 .nodes
-                .get(&current_lo.0)
+                .get(&current_lo)
                 .expect("Solution must be present in map at this point")
                 .0;
             self.walk_visited.insert(id);
-            let new_lo = self.random_walk_step(&current_lo.0);
+            let new_lo = self.random_walk_step(&current_lo);
             self.current_lo = Some(new_lo);
         }
     }
@@ -119,7 +123,7 @@ impl SnowballSampler {
         }
     }
 
-    fn random_walk_step(&mut self, c_lo: &Vec<u16>) -> (Vec<u16>, i32) {
+    fn random_walk_step(&mut self, c_lo: &Vec<u16>) -> Vec<u16> {
         let mut neighbors = vec![];
         let c_solution_id = self
             .nodes
@@ -142,7 +146,7 @@ impl SnowballSampler {
             if self.nodes.get(&lo).is_none() {
                 self.insert_node(&lo, len);
             }
-            return (lo, len);
+            return lo;
         }
 
         let between = Uniform::from(0..neighbors.len());
@@ -152,9 +156,8 @@ impl SnowballSampler {
             .iter()
             .find(|(_k, v)| v.0 == neighbors[a])
             .expect("Solution must be present in map at this point");
-        let len = tour_len(neighbor.0, &self.distance_matrix);
 
-        (neighbor.0.clone(), len)
+        neighbor.0.clone()
     }
 
     fn get_next_id(&mut self) -> u16 {
@@ -170,5 +173,9 @@ impl SamplingAlg for SnowballSampler {
 
     fn get_hc_calls(&self) -> u64 {
         self.hc_counter
+    }
+
+    fn get_oracle_calls(&self) -> u128 {
+        self.oracle_counter
     }
 }

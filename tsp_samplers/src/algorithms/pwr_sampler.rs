@@ -17,6 +17,7 @@ pub struct PwrSampler {
     nodes: NodeMap,
     edges: EdgeMap,
     hc_counter: u64,
+    oracle_counter: u128,
 }
 
 impl PwrSampler {
@@ -32,6 +33,7 @@ impl PwrSampler {
             nodes: NodeMap::default(),
             edges: EdgeMap::default(),
             hc_counter: 0,
+            oracle_counter: 0,
         }
     }
 
@@ -39,6 +41,7 @@ impl PwrSampler {
         self.nodes = NodeMap::default();
         self.edges = EdgeMap::default();
         self.hc_counter = 0;
+        self.oracle_counter = 0;
     }
 
     pub fn sample(&mut self, n_max: u32, n_att: u32, e_att: u32) {
@@ -100,5 +103,9 @@ impl SamplingAlg for PwrSampler {
 
     fn get_hc_calls(&self) -> u64 {
         self.hc_counter
+    }
+
+    fn get_oracle_calls(&self) -> u128 {
+        self.oracle_counter
     }
 }

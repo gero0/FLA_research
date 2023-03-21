@@ -6,6 +6,7 @@ pub fn save_json(
     nodes: &NodeMap,
     edges: &EdgeMap,
     hc_count: u64,
+    oracle_count: u128,
     time_ms: u128,
     path: &str,
 ) -> Result<(), Box<dyn Error>> {
@@ -15,8 +16,8 @@ pub fn save_json(
     let mut f = File::create(path)?;
     f.write("{\n".as_bytes())?;
     f.write_fmt(format_args!(
-        "\"hc_count\":{},\n\"time_ms\":{},\n",
-        hc_count, time_ms
+        "\"hc_count\":{},\n\"oracle_count\":{},\n\"time_ms\":{},\n",
+        hc_count, oracle_count, time_ms
     ))?;
     f.write("\"nodes\": [\n".as_bytes())?;
     for (i, node) in nodes.enumerate() {

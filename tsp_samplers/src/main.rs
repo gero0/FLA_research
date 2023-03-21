@@ -58,9 +58,10 @@ fn save_sampling_results(
 
     let (nodes, edges) = sampler.get_samples();
     let hc_c = sampler.get_hc_calls();
+    let o_c = sampler.get_oracle_calls();
 
-    save_json(nodes, edges, hc_c, time_ms, path.as_str()).unwrap();
-    save_json(nodes, edges, hc_c, time_ms, path2.as_str()).unwrap();
+    save_json(nodes, edges, hc_c, o_c, time_ms, path.as_str()).unwrap();
+    save_json(nodes, edges, hc_c, o_c, time_ms, path2.as_str()).unwrap();
 }
 
 fn main() {

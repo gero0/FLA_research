@@ -27,7 +27,7 @@ def process_file(path):
 
         edges = f["edges"]
 
-        return (nodes, edges, f["time_ms"], f["hc_count"])
+        return (nodes, edges, f["time_ms"], f["hc_count"], f["oracle_count"])
 
 
 def calculate_stats(nodes, edges, stats):
@@ -89,7 +89,6 @@ def calculate_stats(nodes, edges, stats):
     if "reciprocity" in stats:
         results["reciprocity"] = g.reciprocity()
 
-
     return results
 
 
@@ -123,8 +122,8 @@ def main():
     df = pd.DataFrame()
     files = load(path)
     for index, file in enumerate(files):
-        nodes, edges, time, hc_count = process_file(join(path, file))
-        row = {"time_ms": time, "hc_count": hc_count}
+        nodes, edges, time, hc_count, oracle_count = process_file(join(path, file))
+        row = {"time_ms": time, "hc_count": hc_count, "oracle_count": oracle_count}
         results = calculate_stats(nodes, edges, stats)
         row = row | results
         df = pd.concat([df, pd.DataFrame([row], index=[index])])
