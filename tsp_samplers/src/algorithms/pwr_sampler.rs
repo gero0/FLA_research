@@ -1,15 +1,9 @@
-use std::sync::atomic::{AtomicU16, Ordering};
-
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 
 use crate::helpers::{mutate, random_solution};
 
 use super::{two_opt_besti, two_opt_firsti, EdgeMap, NodeMap, SamplingAlg};
-
-//TODO: try to parallelize
-// should be used with FIRST IMPROVEMENT two_opt
-// kicks leading to solutions not present
 
 pub struct PwrSampler {
     distance_matrix: Vec<Vec<i32>>,
@@ -37,13 +31,6 @@ impl PwrSampler {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.nodes = NodeMap::default();
-        self.edges = EdgeMap::default();
-        self.hc_counter = 0;
-        self.oracle_counter = 0;
-    }
-
     pub fn sample(&mut self, n_max: u32, n_att: u32, e_att: u32) {
         self.sample_nodes(n_max, n_att);
         self.sample_edges(e_att);
@@ -52,20 +39,17 @@ impl PwrSampler {
     fn sample_nodes(&mut self, n_max: u32, n_att: u32) {
         let distance_matrix = &self.distance_matrix;
         let n = self.distance_matrix.len();
-        let last_id = AtomicU16::new(0);
+        let mut next_id = 0;
         //sample nodes
         for _ in 0..n_max {
             for _ in 0..n_att {
                 let start = random_solution(n as u16, None, true);
                 let (solution, s_len) = two_opt_besti(&start, distance_matrix);
                 self.hc_counter += 1;
-                match self.nodes.get(&start) {
-                    Some(_) => { /*do nothing if solution is already in the map */ }
-                    None => {
-                        let id = last_id.fetch_add(1, Ordering::Relaxed);
-                        self.nodes.insert(solution, (id, s_len));
-                        break;
-                    }
+                if self.nodes.get(&start).is_none() {
+                    self.nodes.insert(solution, (next_id, s_len));
+                    next_id += 1;
+                    break;
                 }
             }
         }
@@ -85,11 +69,7 @@ impl PwrSampler {
                             self.edges.insert(((s.1).0, new_s.0), 1);
                         }
                     },
-                    None => {
-                        //TODO:
-                        //increase the number of kick moves from s leading to solution not
-                        //present in NLON by 1;
-                    }
+                    None => {}
                 }
             }
         }
