@@ -46,6 +46,9 @@ def distLO(nodes, edges):
         if dst == best_id:
             distances.append(1 / weight)
 
+    if(len(distances) == 0):
+        return 0
+
     return sum(distances) / len(distances)
 
 def conrel(nodes, edges):

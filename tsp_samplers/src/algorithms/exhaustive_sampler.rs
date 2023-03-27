@@ -5,22 +5,28 @@ use std::{
     io::{BufRead, BufReader, Write},
 };
 
-use crate::{algorithms::hillclimb::hillclimb_steepest, helpers::cmp_permutations};
+use crate::helpers::cmp_permutations;
 
-use super::{EdgeMap, NodeMap, SamplingAlg};
+use super::{EdgeMap, HillclimbFunction, NodeMap, SamplingAlg};
 
 pub struct ExhaustiveSampler {
     distance_matrix: Vec<Vec<i32>>,
+    hillclimb_alg: HillclimbFunction,
     permpath: String,
     mut_d: u32,
     nodes: NodeMap,
     edges: EdgeMap,
     last_node_id: u16,
     hc_counter: u64,
+    oracle_counter: u128,
 }
 
 impl ExhaustiveSampler {
-    pub fn new(distance_matrix: Vec<Vec<i32>>, mut_d: u32) -> Self {
+    pub fn new(
+        distance_matrix: Vec<Vec<i32>>,
+        mut_d: u32,
+        hillclimb_alg: HillclimbFunction,
+    ) -> Self {
         let set: Vec<_> = (0..distance_matrix.len() as u16).collect();
         let permpath = String::from(generate_perms(&set));
 
@@ -32,6 +38,8 @@ impl ExhaustiveSampler {
             edges: EdgeMap::default(),
             last_node_id: 0,
             hc_counter: 0,
+            oracle_counter: 0,
+            hillclimb_alg,
         }
     }
 
@@ -46,8 +54,9 @@ impl ExhaustiveSampler {
 
         for line in lines {
             let solution = deserialize(&line.unwrap());
-            let (lo, s_len) = hillclimb_steepest(&solution, &distance_matrix);
+            let (lo, s_len, oracle) = (self.hillclimb_alg)(&solution, &distance_matrix);
             self.hc_counter += 1;
+            self.oracle_counter += oracle;
             pairs.insert(solution, lo.clone());
 
             if self.nodes.get(&lo).is_none() {
@@ -76,7 +85,6 @@ impl ExhaustiveSampler {
         }
     }
 
-
     fn get_next_id(&mut self) -> u16 {
         self.last_node_id += 1;
         self.last_node_id - 1
@@ -90,6 +98,10 @@ impl SamplingAlg for ExhaustiveSampler {
 
     fn get_hc_calls(&self) -> u64 {
         self.hc_counter
+    }
+
+    fn get_oracle_calls(&self) -> u128 {
+        self.oracle_counter
     }
 }
 

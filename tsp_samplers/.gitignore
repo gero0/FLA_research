@@ -1,3 +1,5 @@
-target
-perf*
-*.svg
+*
+-Cargo.toml
+-Cargo.lock
+-src/*
+-.gitignore
