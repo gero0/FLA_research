@@ -2,6 +2,7 @@ use std::{error::Error, fmt::Display, fs};
 
 use rand::{distributions::Uniform, prelude::Distribution, SeedableRng};
 use rand_chacha::ChaCha8Rng;
+use rustc_hash::FxHashSet;
 
 #[derive(Debug, Clone)]
 pub struct TspFile {
@@ -83,7 +84,7 @@ pub fn mutate(perm: &Vec<u16>, n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<u16>
     let mut mutation = perm.to_owned();
     let mut i = 0;
     while i < n_swaps {
-        let between = Uniform::from(0..perm.len());
+        let between = Uniform::from(1..perm.len());
         let a = between.sample(rng);
         let b = between.sample(rng);
 
@@ -95,6 +96,78 @@ pub fn mutate(perm: &Vec<u16>, n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<u16>
         i += 1;
     }
 
+    mutation
+}
+
+//checks all permutations - it's ok since we're going to use it only in exhaustive search
+//on instances with N=12 max
+pub fn inrange_2change(perm1: &[u16], perm2: &[u16], mut_d: usize) -> bool {
+    let mut permutations = FxHashSet::default();
+    permutations.insert(perm1.to_owned());
+
+    //first find all 2-change permutations based on perm1
+    //then generate new permutations from all permutations created from perm1
+    //repeat the process recursively
+    //check if any of the permutations matches perm2
+
+    for _i in 0..mut_d {
+        let mut new_perms = FxHashSet::default();
+        for perm in permutations {
+            let child_perms = two_exchange_allperms(&perm);
+            for p in child_perms {
+                //if we found perm2 we can return early
+                //otherwise add to set of new permutations that will replace original permutations
+                if p == perm2 {
+                    return true;
+                }
+                new_perms.insert(p);
+            }
+        }
+        permutations = new_perms;
+    }
+
+    //perm 2 not found - not in mut_d distance
+    false
+}
+
+fn two_exchange_allperms(perm: &[u16]) -> Vec<Vec<u16>> {
+    let mut perms = vec![];
+    let n = perm.len();
+    for a in 1..(n - 1) {
+        for b in (a + 1)..n {
+            let new_perm = two_exchange(perm, a, b);
+            perms.push(new_perm);
+        }
+    }
+
+    perms
+}
+
+//TODO: do we change the first element or not?
+pub fn mutate_2exchange(perm: &[u16], n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<u16> {
+    let mut mutation = perm.to_owned();
+
+    for _i in 0..n_swaps {
+        let between = Uniform::from(1..perm.len() - 1);
+        let a = between.sample(rng);
+        let between_a = Uniform::from(a + 1..perm.len());
+        let b = between_a.sample(rng);
+
+        mutation = two_exchange(perm, a, b);
+    }
+
+    mutation
+}
+
+pub fn two_exchange(perm: &[u16], mut a: usize, mut b: usize) -> Vec<u16> {
+    assert!(a < b);
+    let mut mutation = perm.to_owned();
+    a += 1;
+    while a < b {
+        mutation.swap(a, b);
+        a += 1;
+        b -= 1;
+    }
     mutation
 }
 
