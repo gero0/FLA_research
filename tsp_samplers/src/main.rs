@@ -4,8 +4,8 @@ mod ser;
 
 use crate::ser::save_json;
 use algorithms::{
-    exhaustive_sampler::ExhaustiveSampler, hillclimb::hillclimb_steepest,
-    snowball_sampler::SnowballSampler, PwrSampler, SamplingAlg,
+    exhaustive_sampler::ExhaustiveSampler,
+    snowball_sampler::SnowballSampler, PwrSampler, SamplingAlg, two_opt_besti,
 };
 use clap::{Parser, Subcommand};
 use helpers::{parse_intermediate_format, TspFile};
@@ -90,7 +90,7 @@ fn main() {
 }
 
 fn sample_exhaustive(file: TspFile) {
-    let mut sampler = ExhaustiveSampler::new(file.distance_matrix, 2, hillclimb_steepest);
+    let mut sampler = ExhaustiveSampler::new(file.distance_matrix, 2, two_opt_besti);
     let start = Instant::now();
     sampler.sample();
     let time_ms = start.elapsed().as_millis();
@@ -128,7 +128,7 @@ fn sample_snowball(
         depth,
         mut_d,
         file.distance_matrix,
-        hillclimb_steepest,
+        two_opt_besti,
         seed,
     );
 

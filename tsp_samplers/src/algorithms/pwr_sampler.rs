@@ -1,7 +1,7 @@
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 
-use crate::helpers::{mutate, random_solution};
+use crate::helpers::{random_solution, mutate_2exchange};
 
 use super::{two_opt_besti, two_opt_firsti, EdgeMap, NodeMap, SamplingAlg};
 
@@ -44,8 +44,9 @@ impl PwrSampler {
         for _ in 0..n_max {
             for _ in 0..n_att {
                 let start = random_solution(n as u16, None, true);
-                let (solution, s_len) = two_opt_besti(&start, distance_matrix);
+                let (solution, s_len, oracle) = two_opt_besti(&start, distance_matrix);
                 self.hc_counter += 1;
+                self.oracle_counter += oracle;
                 if self.nodes.get(&start).is_none() {
                     self.nodes.insert(solution, (next_id, s_len));
                     next_id += 1;
@@ -59,9 +60,10 @@ impl PwrSampler {
         let distance_matrix = &self.distance_matrix;
         for s in &self.nodes {
             for _ in 0..e_att {
-                let start = mutate(s.0, 2, &mut self.rng);
+                let start = mutate_2exchange(s.0, 2, &mut self.rng);
                 let new_s = two_opt_firsti(&start, distance_matrix);
                 self.hc_counter += 1;
+                self.oracle_counter += new_s.2;
                 match self.nodes.get(&new_s.0) {
                     Some(new_s) => match self.edges.get_mut(&((s.1).0, new_s.0)) {
                         Some(edge) => *edge += 1,

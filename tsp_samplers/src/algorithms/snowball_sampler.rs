@@ -1,4 +1,4 @@
-use crate::helpers::{mutate, random_solution};
+use crate::helpers::{mutate_2exchange, random_solution};
 use rand::{distributions::Uniform, prelude::Distribution, RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -100,7 +100,7 @@ impl SnowballSampler {
         }
 
         for _ in 0..self.n_edges {
-            let shuffled = mutate(current_lo, self.mut_d, &mut self.rng);
+            let shuffled = mutate_2exchange(current_lo, self.mut_d, &mut self.rng);
             let (new_lo, new_lo_len) = self.climb(&shuffled);
             let new_lo_id = match self.nodes.get(&new_lo) {
                 Some(s) => s.0,

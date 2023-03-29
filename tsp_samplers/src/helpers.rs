@@ -22,7 +22,7 @@ impl Display for ParsingError {
 
 impl Error for ParsingError {}
 
-//random_solution, tour_len and cmp_permutation implementation taken from tsptools library by Kacper Leśniański and Paweł Szczepaniak
+//random_solution and tour_len implementation taken from tsptools library by Kacper Leśniański and Paweł Szczepaniak
 //https://github.com/gero0/tsptools
 pub fn random_solution(node_count: u16, seed: Option<u64>, preserve_first: bool) -> Vec<u16> {
     let (mut nodes_remaining, mut path) = if preserve_first {
@@ -78,25 +78,6 @@ pub fn parse_intermediate_format(path: &str) -> Result<TspFile, Box<dyn Error>> 
     };
 
     Ok(file)
-}
-
-pub fn mutate(perm: &Vec<u16>, n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<u16> {
-    let mut mutation = perm.to_owned();
-    let mut i = 0;
-    while i < n_swaps {
-        let between = Uniform::from(1..perm.len());
-        let a = between.sample(rng);
-        let b = between.sample(rng);
-
-        if a == b {
-            continue;
-        }
-
-        mutation.swap(a, b);
-        i += 1;
-    }
-
-    mutation
 }
 
 //checks all permutations - it's ok since we're going to use it only in exhaustive search
@@ -172,30 +153,6 @@ pub fn two_exchange(perm: &[u16], mut a: usize, mut b: usize) -> Vec<u16> {
     mutation
 }
 
-pub fn cmp_permutations(perm1: &[u16], perm2: &[u16]) -> u32 {
-    //invert first permutation
-    let mut perm_1_inv = perm1.to_owned();
-    for i in 0..perm1.len() {
-        perm_1_inv[perm1[i] as usize] = i as u16;
-    }
-
-    //Compose the two permutations
-    let mut p = vec![0; perm1.len()];
-    for i in 0..perm1.len() {
-        p[i] = perm2[perm_1_inv[i] as usize];
-    }
-
-    let mut count = 0;
-    for i in 0..perm1.len() {
-        while p[i] != i as u16 {
-            let a = p[p[i] as usize];
-            let b = p[i];
-            p.swap(a.into(), b.into());
-            count += 1;
-        }
-    }
-    count
-}
 
 #[cfg(test)]
 mod tests {

@@ -5,7 +5,7 @@ use std::{
     io::{BufRead, BufReader, Write},
 };
 
-use crate::helpers::cmp_permutations;
+use crate::helpers::inrange_2change;
 
 use super::{EdgeMap, HillclimbFunction, NodeMap, SamplingAlg};
 
@@ -13,7 +13,7 @@ pub struct ExhaustiveSampler {
     distance_matrix: Vec<Vec<i32>>,
     hillclimb_alg: HillclimbFunction,
     permpath: String,
-    mut_d: u32,
+    mut_d: usize,
     nodes: NodeMap,
     edges: EdgeMap,
     last_node_id: u16,
@@ -24,7 +24,7 @@ pub struct ExhaustiveSampler {
 impl ExhaustiveSampler {
     pub fn new(
         distance_matrix: Vec<Vec<i32>>,
-        mut_d: u32,
+        mut_d: usize,
         hillclimb_alg: HillclimbFunction,
     ) -> Self {
         let set: Vec<_> = (0..distance_matrix.len() as u16).collect();
@@ -68,9 +68,8 @@ impl ExhaustiveSampler {
         for (perm, lo) in pairs.iter() {
             for other_lo in self.nodes.iter() {
                 //Compare with each local optimum in search space
-                let dist = cmp_permutations(perm, other_lo.0) as i32;
                 //If you can get to this optimum from current solution with mut_d swaps, add/update edge in LON
-                if dist < self.mut_d as i32 {
+                if inrange_2change(perm, other_lo.0, self.mut_d){
                     let lo_id = self.nodes.get(lo).unwrap().0;
                     match self.edges.get_mut(&(other_lo.1 .0, lo_id)) {
                         Some(weight) => {
