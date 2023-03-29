@@ -133,7 +133,7 @@ pub fn inrange_2change(perm1: &[u16], perm2: &[u16], mut_d: usize) -> bool {
 fn two_exchange_allperms(perm: &[u16]) -> Vec<Vec<u16>> {
     let mut perms = vec![];
     let n = perm.len();
-    for a in 1..(n - 1) {
+    for a in 0..(n - 1) {
         for b in (a + 1)..n {
             let new_perm = two_exchange(perm, a, b);
             perms.push(new_perm);
@@ -143,12 +143,11 @@ fn two_exchange_allperms(perm: &[u16]) -> Vec<Vec<u16>> {
     perms
 }
 
-//TODO: do we change the first element or not?
 pub fn mutate_2exchange(perm: &[u16], n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<u16> {
     let mut mutation = perm.to_owned();
 
     for _i in 0..n_swaps {
-        let between = Uniform::from(1..perm.len() - 1);
+        let between = Uniform::from(0..perm.len() - 1);
         let a = between.sample(rng);
         let between_a = Uniform::from(a + 1..perm.len());
         let b = between_a.sample(rng);
@@ -161,6 +160,8 @@ pub fn mutate_2exchange(perm: &[u16], n_swaps: usize, rng: &mut ChaCha8Rng) -> V
 
 pub fn two_exchange(perm: &[u16], mut a: usize, mut b: usize) -> Vec<u16> {
     assert!(a < b);
+    assert!(a < perm.len() && b < perm.len());
+
     let mut mutation = perm.to_owned();
     a += 1;
     while a < b {
@@ -194,4 +195,63 @@ pub fn cmp_permutations(perm1: &[u16], perm2: &[u16]) -> u32 {
         }
     }
     count
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use itertools::Itertools;
+    #[test]
+    fn two_exchange_test() {
+        let perm = [1, 2, 3, 4, 5, 6];
+        let exchange = two_exchange(&perm, 1, 4);
+        assert_eq!(exchange, [1, 2, 5, 4, 3, 6]);
+        let perm2 = [1, 4, 3, 2, 5];
+        assert_eq!(two_exchange(&perm2, 0, 3), [1, 2, 3, 4, 5]);
+        let perm3 = [1, 2, 3, 4];
+        assert_eq!(two_exchange(&perm3, 1, 2), [1, 2, 3, 4]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn two_exchange_panic() {
+        let perm3 = [1];
+        assert_eq!(two_exchange(&perm3, 0, 0), [1])
+    }
+
+    #[test]
+    fn test_twoopt_perms() {
+        let starting = [1, 2, 3, 4];
+        let permutations = two_exchange_allperms(&starting);
+        assert_eq!(permutations.len(), 6);
+        let uniq: Vec<_> = permutations.into_iter().unique().collect();
+        assert_eq!(uniq.len(), 4);
+
+        let starting = [1, 2, 3, 4, 5];
+        let permutations = two_exchange_allperms(&starting);
+        assert_eq!(permutations.len(), 10);
+        let uniq: Vec<_> = permutations.into_iter().unique().collect();
+        assert_eq!(uniq.len(), 7);
+    }
+
+    #[test]
+    fn test_in_range() {
+        let perm1 = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let perm2 = [1, 9, 8, 7, 6, 5, 4, 3, 2];
+        let perm3 = [1, 9, 8, 7, 6, 3, 4, 5, 2];
+        let perm4 = [1, 7, 8, 9, 6, 3, 4, 5, 2];
+
+        assert!(inrange_2change(&perm1, &perm2, 2));
+        assert!(inrange_2change(&perm1, &perm3, 2));
+        assert!(!inrange_2change(&perm1, &perm4, 2));
+        assert!(inrange_2change(&perm1, &perm4, 3));
+    }
+
+    #[test]
+    fn test_mutate() {
+        let perm1 = [1, 2, 3];
+        let mut rng = ChaCha8Rng::from_entropy();
+        let mutation = mutate_2exchange(&perm1, 1, &mut rng);
+        assert!((mutation == perm1) || mutation == [1, 3, 2]);
+    }
 }
