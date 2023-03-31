@@ -1,4 +1,4 @@
-from math import sin, cos, pi, sqrt
+from math import ceil, sin, cos, pi, sqrt
 import numpy as np
 import argparse
 import pathlib
@@ -66,7 +66,7 @@ if args.mincd is None:
 else:
     MinCliqueSep = int(args.mincd)
 
-ppc = int(N / N_cliques)
+ppc = ceil(N / N_cliques)
 
 rng = np.random.default_rng()
 
