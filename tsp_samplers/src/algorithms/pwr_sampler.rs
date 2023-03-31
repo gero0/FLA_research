@@ -12,6 +12,7 @@ pub struct PwrSampler {
     edges: EdgeMap,
     hc_counter: u64,
     oracle_counter: u128,
+    next_id: u16,
 }
 
 impl PwrSampler {
@@ -28,6 +29,7 @@ impl PwrSampler {
             edges: EdgeMap::default(),
             hc_counter: 0,
             oracle_counter: 0,
+            next_id: 0,
         }
     }
 
@@ -39,7 +41,6 @@ impl PwrSampler {
     fn sample_nodes(&mut self, n_max: u32, n_att: u32) {
         let distance_matrix = &self.distance_matrix;
         let n = self.distance_matrix.len();
-        let mut next_id = 0;
         //sample nodes
         for _ in 0..n_max {
             for _ in 0..n_att {
@@ -47,9 +48,9 @@ impl PwrSampler {
                 let (solution, s_len, oracle) = two_opt_besti(&start, distance_matrix);
                 self.hc_counter += 1;
                 self.oracle_counter += oracle;
-                if self.nodes.get(&start).is_none() {
-                    self.nodes.insert(solution, (next_id, s_len));
-                    next_id += 1;
+                if self.nodes.get(&solution).is_none() {
+                    self.nodes.insert(solution, (self.next_id, s_len));
+                    self.next_id += 1;
                     break;
                 }
             }
