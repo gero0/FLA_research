@@ -35,8 +35,14 @@ def calculate_stats(nodes, edges, stats):
     results["node_count"] = len(nodes)
     results["edge_count"] = len(edges)
 
-    # if "num_subsinks" in stats:
-    #     results["num_subsinks"] = subsinks_count(nodes, edges)
+    if "num_subsinks" in stats:
+        results["num_subsinks"] = subsink_count(nodes, edges)
+
+    if "num_sinks" in stats:
+        results["num_sinks"] = sink_count(nodes, edges)
+
+    if "num_sources" in stats:
+        results["num_sources"] = source_count(nodes, edges)
 
     if "edge_to_node" in stats:
         results["edge_to_node"] = e2n_ratio(nodes, edges)

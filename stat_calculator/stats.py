@@ -1,39 +1,23 @@
+import rust_stat_tools as rst
+
 def e2n_ratio(nodes, edges):
     return len(edges) / len(nodes)
 
 
-def subsinks(nodes, edges):
-    subsinks = []
-    for current_node in nodes:
-        (id, perm, path_len) = current_node
-        #Find all outgoing edges of this node
-        outgoing_edges = []
-        for edge in edges:
-            (src, dst, weight) = edge
-            if src == id:
-                outgoing_edges.append(edge)
+def subsink_count(nodes, edges):
+    nodes_t = [tuple(x) for x in nodes]
+    edges_t = [tuple(x) for x in edges]
+    return rst.num_subsinks(nodes_t, edges_t)
 
-        counter = 0
-        #Count all nodes with shorter path that are destination of edges
-        for edge in outgoing_edges:
-            (src, dst, weight) = edge
-            if dst == id:
-                continue
+def sink_count(nodes, edges):
+    nodes_t = [tuple(x) for x in nodes]
+    edges_t = [tuple(x) for x in edges]
+    return rst.num_sinks(nodes_t, edges_t)
 
-            for node in nodes:
-                (id, perm, p_len) = node
-                if id == dst and p_len < path_len:
-                    counter += 1
-
-        if counter == 0:
-            subsinks.append(current_node)
-
-    return subsinks
-
-
-def subsinks_count(nodes, edges):
-    sinks = subsinks(nodes, edges)
-    return len(sinks)
+def source_count(nodes, edges):
+    nodes_t = [tuple(x) for x in nodes]
+    edges_t = [tuple(x) for x in edges]
+    return rst.num_sources(nodes_t, edges_t)
 
 def distLO(nodes, edges):
     best = nodes[0]
