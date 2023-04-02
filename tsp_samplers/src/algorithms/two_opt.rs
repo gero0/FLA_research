@@ -62,6 +62,6 @@ fn two_opt_base(
     }
 
     let len = tour_len(&tour, distance_matrix);
-    (tour, len, 0)
+    (tour, len, 1)
 }
 
