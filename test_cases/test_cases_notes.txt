@@ -1,0 +1,3 @@
+Uniform generated with board size = 1000
+cliques generated with: minld = 8 maxld = 40 mincd = 200 maxcd = 1000, CLIQUE_NUM = ROUND(SQRT(N))
+GRID distance = 100

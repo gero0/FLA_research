@@ -1,6 +1,6 @@
 from math import sqrt
 import pathlib
-from PIL import Image
+from PIL import Image, ImageDraw
 
 
 def find_extremes(points):
@@ -39,6 +39,7 @@ def calc_dist_matrix(points):
 
     return matrix
 
+
 def write_matrix(matrix, fname, name):
     with open(fname, 'w+') as f:
         f.write(f"{name}\n")
@@ -57,16 +58,23 @@ def write_points(points, fname):
         for i, point in enumerate(points):
             f.write(f"{i} {point[0]} {point[1]}\n")
 
-def save_res(dirname, points, max_x, max_y, name):
+
+def save_res(dirname, points, max_x, max_y, name, border=10, radius=5):
     pathlib.Path(dirname).mkdir(parents=True, exist_ok=True)
 
     matrix = calc_dist_matrix(points)
     write_matrix(matrix, f"{dirname}/matrix.txt", name)
     write_points(matrix, f"{dirname}/points.txt")
 
-    img = Image.new(mode="RGB", size=(max_x, max_y))
+    img = Image.new(mode="RGB", size=(max_x + 2 * border, max_y + 2 * border))
+    draw = ImageDraw.Draw(img)
 
     for point in points:
-        img.putpixel(point, (255, 255, 255))
+        (x, y) = point
+        (draw_x, draw_y) = (x + border, y + border)
+        draw.ellipse((draw_x - radius, draw_y - radius, draw_x + radius,
+                      draw_y + radius),
+                     fill=(255, 255, 255),
+                     outline=(255, 0, 0))
 
     img.save(f"{dirname}/vis.png")

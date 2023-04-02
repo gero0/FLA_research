@@ -4,7 +4,10 @@ from igraph import Graph
 import igraph
 from helpers import split_edge_data
 from main import process_file
+import matplotlib.pyplot as plt
 
+fig = plt.figure(figsize=(100,100))
+ax = fig.subplots()
 
 parser = argparse.ArgumentParser(prog="graph_vis",
                                     description="What the program does")
@@ -19,7 +22,7 @@ parser.add_argument("-o",
 args = parser.parse_args()
 
 if args.output is None:
-    output = "graphvis.pdf"
+    output = "graphvis.png"
 else:
     output = args.output
 
@@ -31,4 +34,6 @@ g = Graph(n=len(nodes),
             edge_attrs={"weight": weight_list},
             directed=False)
 
-igraph.plot(g, target = output)
+# igraph.plot(g, target = output)
+igraph.plot(g, target = ax,  vertex_size=0.1)
+fig.savefig(output)
