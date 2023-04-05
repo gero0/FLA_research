@@ -14,10 +14,11 @@ use std::time::Instant;
 const PBAR_W: u32 = 32;
 
 #[derive(Parser)]
-#[command(author="ur mom", version="1.0", about, long_about = None)]
+#[command(author="K.Lesnianski", version="1.0", about, long_about = None)]
 struct Cli {
     input_file: String,
     iters: u32,
+    output_dir: Option<String>,
 
     #[command(subcommand)]
     algorithm: Commands,
@@ -45,23 +46,16 @@ fn save_sampling_results(
     sampler: &impl SamplingAlg,
     time_ms: u128,
     dirname: &str,
-    dt: &str,
     i: u32,
 ) {
-    let dir = format!("{}_{}", dirname, dt);
-    let dir_latest = format!("{}_latest", dirname);
-
-    let _ = std::fs::create_dir(&dir);
-    let _ = std::fs::create_dir(&dir_latest);
-    let path = format!("{}/samples_{}.json", &dir, i);
-    let path2 = format!("{}/samples_{}.json", &dir_latest, i);
+    let _ = std::fs::create_dir(&dirname);
+    let path = format!("{}/samples_{}.json", &dirname, i);
 
     let (nodes, edges) = sampler.get_samples();
     let hc_c = sampler.get_hc_calls();
     let o_c = sampler.get_oracle_calls();
 
     save_json(nodes, edges, hc_c, o_c, time_ms, path.as_str()).unwrap();
-    save_json(nodes, edges, hc_c, o_c, time_ms, path2.as_str()).unwrap();
 }
 
 fn main() {
@@ -78,30 +72,28 @@ fn main() {
             depth,
             mut_d,
             seed,
-        } => sample_snowball(file, walk_len, n_edges, depth, mut_d, cli.iters, seed),
+        } => sample_snowball(file, walk_len, n_edges, depth, mut_d, cli.iters, &cli.output_dir.unwrap_or("snowball_latest".into()), seed),
         Commands::Pwr {
             n_max,
             n_att,
             e_att,
             seed,
-        } => sample_pwr(file, n_max, n_att, e_att, cli.iters, seed),
-        Commands::Exhaustive {} => sample_exhaustive(file),
+        } => sample_pwr(file, n_max, n_att, e_att, cli.iters, &cli.output_dir.unwrap_or("twophase_latest".into()), seed),
+        Commands::Exhaustive {} => sample_exhaustive(file, &cli.output_dir.unwrap_or("exhaustive_latest".into())),
     }
 }
 
-fn sample_exhaustive(file: TspFile) {
+fn sample_exhaustive(file: TspFile, output_dir: &str) {
     let mut sampler = ExhaustiveSampler::new(file.distance_matrix, 2, two_opt_besti);
     let start = Instant::now();
     sampler.sample();
     let time_ms = start.elapsed().as_millis();
-    let dt = chrono::offset::Local::now().to_string();
 
-    save_sampling_results(&sampler, time_ms, "exhaustive", &dt, 0);
+    save_sampling_results(&sampler, time_ms, output_dir, 0);
 }
 
-fn sample_pwr(file: TspFile, n_max: u32, n_att: u32, e_att: u32, iters: u32, seed: Option<u64>) {
+fn sample_pwr(file: TspFile, n_max: u32, n_att: u32, e_att: u32, iters: u32, output_dir: &str, seed: Option<u64>) {
     let mut sampler = PwrSampler::new(file.distance_matrix, seed);
-    let dt = chrono::offset::Local::now().to_string();
     let mut time_ms = 0;
 
     for i in 0..iters {
@@ -109,7 +101,7 @@ fn sample_pwr(file: TspFile, n_max: u32, n_att: u32, e_att: u32, iters: u32, see
         let start = Instant::now();
         sampler.sample(n_max, n_att, e_att);
         time_ms += start.elapsed().as_millis();
-        save_sampling_results(&sampler, time_ms, "pwr", &dt, i);
+        save_sampling_results(&sampler, time_ms, output_dir, i);
     }
 }
 
@@ -120,6 +112,7 @@ fn sample_snowball(
     depth: u32,
     mut_d: usize,
     iters: u32,
+    output_dir: &str,
     seed: Option<u64>,
 ) {
     let mut sampler = SnowballSampler::new(
@@ -132,7 +125,6 @@ fn sample_snowball(
         seed,
     );
 
-    let dt = chrono::offset::Local::now().to_string();
     let mut time_ms = 0;
 
     for i in 0..iters {
@@ -142,7 +134,7 @@ fn sample_snowball(
         sampler.sample();
         time_ms += start.elapsed().as_millis();
 
-        save_sampling_results(&sampler, time_ms, "snowball", &dt, i)
+        save_sampling_results(&sampler, time_ms, output_dir, i)
     }
 }
 
