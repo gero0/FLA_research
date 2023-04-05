@@ -7,7 +7,7 @@ import os
 
 
 def draw_corr_matrix(df):
-    f = plt.figure(figsize=(10, 10))
+    f = plt.figure(figsize=(20, 20))
     plt.imshow(df, cmap="PRGn")
     plt.xticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14, rotation=45)
     plt.yticks(range(df.select_dtypes(['number']).shape[1]), df.select_dtypes(['number']).columns, fontsize=14)
@@ -55,9 +55,9 @@ def main():
     df = pd.read_csv(path, sep=';', index_col=0)
     print(df)
 
-    for stat in stats:
+    for stat in df.columns[3:]:
         try:
-            df.plot(backend="matplotlib", x="hc_count", y=stat)
+            df.plot(backend="matplotlib", x="time_ms", y=stat)
             plt.savefig(os.path.join(output, stat))
         except:
             print(f"Stat {stat} not found in input dataframe")

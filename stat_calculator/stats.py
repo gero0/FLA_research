@@ -1,4 +1,7 @@
+import igraph
+from matplotlib import pyplot as plt
 import rust_stat_tools as rst
+from copy import deepcopy
 
 def e2n_ratio(nodes, edges):
     return len(edges) / len(nodes)
@@ -19,9 +22,8 @@ def source_count(nodes, edges):
     edges_t = [tuple(x) for x in edges]
     return rst.num_sources(nodes_t, edges_t)
 
-def distLO(nodes, edges):
-    best = nodes[0]
-    best_id = best[0]
+def distLO(nodes, edges, best_node):
+    best_id = best_node[0]
 
     distances = []
 
@@ -35,9 +37,8 @@ def distLO(nodes, edges):
 
     return sum(distances) / len(distances)
 
-def conrel(nodes, edges):
-    best = nodes[0]
-    best_id = best[0]
+def conrel(nodes, edges, best_node):
+    best_id = best_node[0]
 
     connected = set()
 
@@ -54,4 +55,41 @@ def conrel(nodes, edges):
             nc_counter += 1
 
     return len(connected) / nc_counter
+
+def find_funnels(g, filter):
+    g = deepcopy(g)
+
+    #Prune off non-improving edges
+    edges_to_remove = []
+    for e in g.es:
+        src = g.vs[e.source]
+        dst = g.vs[e.target]
+        if(dst['weight'] >= src['weight']):
+            edges_to_remove.append(e.index)
+
+    g.delete_edges(edges_to_remove)
+
+    isolated = []
+    sources = []
+    sinks = []
+    for v in g.vs:
+        if v.degree(mode="in") == 0:
+            sources.append(v.index)
+        if(v.degree(mode="out") == 0):
+            sinks.append(v.index)
+            if(v.degree(mode="in") == 0):
+                isolated.append(v.index)
+
+    if(filter):
+        sinks = [x for x in sinks if x not in isolated]
+
+    funnel_sizes = []
+    for sink in sinks:
+        [vertices, parents] = g.dfs(vid=sink, mode="in")
+        funnel_sizes.append(len(vertices))
+
+    mean_fs = sum(funnel_sizes) / len(funnel_sizes)
+
+    return(len(funnel_sizes), mean_fs, max(funnel_sizes), min(funnel_sizes))
+
 

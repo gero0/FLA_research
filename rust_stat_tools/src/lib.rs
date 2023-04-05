@@ -70,8 +70,8 @@ fn is_source(current_node: &(u16, Vec<u16>, i32), edges: &Vec<(u16, u16, u32)>) 
 
     let mut counter = 0;
     for edge in edges {
-        let (_src, dst, _weight) = edge;
-        if *dst == *id {
+        let (src, dst, _weight) = edge;
+        if *dst == *id && src != dst{
             counter += 1;
         }
     }
@@ -107,8 +107,8 @@ fn is_subsink(
     //Find all outgoing edges of this node
     let mut outgoing_edges = vec![];
     for edge in edges {
-        let (src, _dst, _weight) = edge;
-        if *src == *id {
+        let (src, dst, _weight) = edge;
+        if *src == *id && src != dst {
             outgoing_edges.push(edge)
         }
     }
