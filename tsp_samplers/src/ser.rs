@@ -8,6 +8,7 @@ pub fn save_json(
     hc_count: u64,
     oracle_count: u128,
     time_ms: u128,
+    comment : &str,
     path: &str,
 ) -> Result<(), Box<dyn Error>> {
     let nodes = nodes.into_iter();
@@ -16,8 +17,8 @@ pub fn save_json(
     let mut f = File::create(path)?;
     f.write("{\n".as_bytes())?;
     f.write_fmt(format_args!(
-        "\"hc_count\":{},\n\"oracle_count\":{},\n\"time_ms\":{},\n",
-        hc_count, oracle_count, time_ms
+        "\"hc_count\":{},\n\"oracle_count\":{},\n\"time_ms\":{},\n\"comment\":\"{}\",\n",
+        hc_count, oracle_count, time_ms, comment
     ))?;
     f.write("\"nodes\": [\n".as_bytes())?;
     for (i, node) in nodes.enumerate() {

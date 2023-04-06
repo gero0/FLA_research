@@ -4,8 +4,8 @@ mod ser;
 
 use crate::ser::save_json;
 use algorithms::{
-    exhaustive_sampler::ExhaustiveSampler,
-    snowball_sampler::SnowballSampler, PwrSampler, SamplingAlg, two_opt_besti,
+    exhaustive_sampler::ExhaustiveSampler, snowball_sampler::SnowballSampler, two_opt_besti,
+    PwrSampler, SamplingAlg,
 };
 use clap::{Parser, Subcommand};
 use helpers::{parse_intermediate_format, TspFile};
@@ -47,6 +47,7 @@ fn save_sampling_results(
     time_ms: u128,
     dirname: &str,
     i: u32,
+    comment: &str,
 ) {
     let _ = std::fs::create_dir(&dirname);
     let path = format!("{}/samples_{}.json", &dirname, i);
@@ -55,7 +56,7 @@ fn save_sampling_results(
     let hc_c = sampler.get_hc_calls();
     let o_c = sampler.get_oracle_calls();
 
-    save_json(nodes, edges, hc_c, o_c, time_ms, path.as_str()).unwrap();
+    save_json(nodes, edges, hc_c, o_c, time_ms, comment, path.as_str()).unwrap();
 }
 
 fn main() {
@@ -72,14 +73,33 @@ fn main() {
             depth,
             mut_d,
             seed,
-        } => sample_snowball(file, walk_len, n_edges, depth, mut_d, cli.iters, &cli.output_dir.unwrap_or("snowball_latest".into()), seed),
+        } => sample_snowball(
+            file,
+            walk_len,
+            n_edges,
+            depth,
+            mut_d,
+            cli.iters,
+            &cli.output_dir.unwrap_or("snowball_latest".into()),
+            seed,
+        ),
         Commands::Pwr {
             n_max,
             n_att,
             e_att,
             seed,
-        } => sample_pwr(file, n_max, n_att, e_att, cli.iters, &cli.output_dir.unwrap_or("twophase_latest".into()), seed),
-        Commands::Exhaustive {} => sample_exhaustive(file, &cli.output_dir.unwrap_or("exhaustive_latest".into())),
+        } => sample_pwr(
+            file,
+            n_max,
+            n_att,
+            e_att,
+            cli.iters,
+            &cli.output_dir.unwrap_or("twophase_latest".into()),
+            seed,
+        ),
+        Commands::Exhaustive {} => {
+            sample_exhaustive(file, &cli.output_dir.unwrap_or("exhaustive_latest".into()))
+        }
     }
 }
 
@@ -89,10 +109,18 @@ fn sample_exhaustive(file: TspFile, output_dir: &str) {
     sampler.sample();
     let time_ms = start.elapsed().as_millis();
 
-    save_sampling_results(&sampler, time_ms, output_dir, 0);
+    save_sampling_results(&sampler, time_ms, output_dir, 0, "exhaustive with D=2");
 }
 
-fn sample_pwr(file: TspFile, n_max: u32, n_att: u32, e_att: u32, iters: u32, output_dir: &str, seed: Option<u64>) {
+fn sample_pwr(
+    file: TspFile,
+    n_max: u32,
+    n_att: u32,
+    e_att: u32,
+    iters: u32,
+    output_dir: &str,
+    seed: Option<u64>,
+) {
     let mut sampler = PwrSampler::new(file.distance_matrix, seed);
     let mut time_ms = 0;
 
@@ -101,7 +129,16 @@ fn sample_pwr(file: TspFile, n_max: u32, n_att: u32, e_att: u32, iters: u32, out
         let start = Instant::now();
         sampler.sample(n_max, n_att, e_att);
         time_ms += start.elapsed().as_millis();
-        save_sampling_results(&sampler, time_ms, output_dir, i);
+        save_sampling_results(
+            &sampler,
+            time_ms,
+            output_dir,
+            i,
+            &format!(
+                "n_max:{} n_att:{} e_att:{} iters:{}",
+                n_max, n_att, e_att, iters
+            ),
+        );
     }
 }
 
@@ -134,7 +171,16 @@ fn sample_snowball(
         sampler.sample();
         time_ms += start.elapsed().as_millis();
 
-        save_sampling_results(&sampler, time_ms, output_dir, i)
+        save_sampling_results(
+            &sampler,
+            time_ms,
+            output_dir,
+            i,
+            &format!(
+                "walk_len:{} n_edges:{} depth:{} D: {} iters:{}",
+                walk_len, n_edges, depth, mut_d, iters
+            ),
+        )
     }
 }
 
