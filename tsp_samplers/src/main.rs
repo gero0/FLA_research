@@ -109,7 +109,13 @@ fn sample_exhaustive(file: TspFile, output_dir: &str) {
     sampler.sample();
     let time_ms = start.elapsed().as_millis();
 
-    save_sampling_results(&sampler, time_ms, output_dir, 0, "exhaustive with D=2");
+    save_sampling_results(
+        &sampler,
+        time_ms,
+        output_dir,
+        0,
+        &format!("exhaustive with D=2 file:{}", file.name),
+    );
 }
 
 fn sample_pwr(
@@ -135,8 +141,8 @@ fn sample_pwr(
             output_dir,
             i,
             &format!(
-                "n_max:{} n_att:{} e_att:{} iters:{}",
-                n_max, n_att, e_att, iters
+                "n_max:{} n_att:{} e_att:{} iters:{} file:{}",
+                n_max, n_att, e_att, iters, file.name
             ),
         );
     }
@@ -177,8 +183,8 @@ fn sample_snowball(
             output_dir,
             i,
             &format!(
-                "walk_len:{} n_edges:{} depth:{} D: {} iters:{}",
-                walk_len, n_edges, depth, mut_d, iters
+                "walk_len:{} n_edges:{} depth:{} D: {} iters:{} file:{}",
+                walk_len, n_edges, depth, mut_d, iters, file.name
             ),
         )
     }
