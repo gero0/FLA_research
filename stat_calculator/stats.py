@@ -1,7 +1,11 @@
 import igraph
+import numpy as np
 from matplotlib import pyplot as plt
 import rust_stat_tools as rst
 from copy import deepcopy
+
+def avg_fitness(nodes):
+    return np.mean([n[2] for n in nodes])
 
 def e2n_ratio(nodes, edges):
     return len(edges) / len(nodes)
@@ -56,7 +60,7 @@ def conrel(nodes, edges, best_node):
 
     return len(connected) / nc_counter
 
-def find_funnels(g, filter):
+def find_funnels(g, filter, best_node):
     g = deepcopy(g)
 
     #Prune off non-improving edges
@@ -83,13 +87,19 @@ def find_funnels(g, filter):
     if(filter):
         sinks = [x for x in sinks if x not in isolated]
 
+    go_funnel_size = 0
+
     funnel_sizes = []
     for sink in sinks:
         [vertices, parents] = g.dfs(vid=sink, mode="in")
         funnel_sizes.append(len(vertices))
+        if sink == best_node[0]:
+            go_funnel_size = len(vertices)
+
+    rel_go_funnel_size = go_funnel_size / max(funnel_sizes)
 
     mean_fs = sum(funnel_sizes) / len(funnel_sizes)
 
-    return(len(funnel_sizes), mean_fs, max(funnel_sizes), min(funnel_sizes))
+    return(len(funnel_sizes), mean_fs, max(funnel_sizes), min(funnel_sizes), rel_go_funnel_size)
 
 
