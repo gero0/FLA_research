@@ -6,13 +6,12 @@ from helpers import split_edge_data
 from main import process_file
 import matplotlib.pyplot as plt
 
-fig = plt.figure(figsize=(100,100))
+fig = plt.figure(figsize=(100, 100))
 ax = fig.subplots()
 
 parser = argparse.ArgumentParser(prog="graph_vis",
-                                    description="What the program does")
-parser.add_argument("filename",
-                    help="Name of input file")
+                                 description="What the program does")
+parser.add_argument("filename", help="Name of input file")
 
 parser.add_argument("-o",
                     "--output",
@@ -30,10 +29,10 @@ nodes, edges, time, hc_count, oracle_count = process_file(args.filename)
 
 (edge_list, weight_list) = split_edge_data(edges)
 g = Graph(n=len(nodes),
-            edges=edge_list,
-            edge_attrs={"weight": weight_list},
-            directed=False)
+          edges=edge_list,
+          edge_attrs={"weight": weight_list},
+          directed=False)
 
 # igraph.plot(g, target = output)
-igraph.plot(g, target = ax,  vertex_size=0.1)
+igraph.plot(g, target=ax, vertex_size=0.1)
 fig.savefig(output)

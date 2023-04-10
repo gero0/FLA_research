@@ -1,9 +1,10 @@
 all_stats = [
     "num_subsinks", "num_sinks", "num_sources", "edge_to_node", "distLO",
-    "conrel", "assortativity_deg", "clustering", "density", "girth", "radius",
+    "conrel", "assortativity_deg", "clustering", "density", "components",
     "avg_path_len", "cliques_num", "maximal_cliques_num",
-    "largest_clique_size", "motifs_randesu_no", "reciprocity", "funnels", "funnels_filtered",
-    "avg_fitness", "out_degree", "in_degree", "paths_to_go", "strength"
+    "largest_clique_size", "motifs_randesu_no", "reciprocity", "funnels",
+    "funnels_filtered", "avg_fitness", "out_degree", "in_degree",
+    "paths_to_go", "strength"
 ]
 
 

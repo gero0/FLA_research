@@ -54,34 +54,33 @@ def calculate_graph_stats(nodes, edges, stats, best_node):
 
         results['go_path_ratio'] = len(existing_paths) / len(paths)
         results['avg_go_path_len'] = np.mean(path_lens)
-        results['max_go_path_len'] = np.max(path_lens)
+        results['max_go_path_len'] = np.max(path_lens, initial=0.0)
 
     if "strength":
         in_strength = g.strength(mode="in", loops=False)
         out_strength = g.strength(mode="out", loops=False)
         results['avg_in_strength'] = np.mean(in_strength)
-        results['max_in_strength'] = np.max(in_strength)
+        results['max_in_strength'] = np.max(in_strength, initial=0.0)
         results['avg_out_strength'] = np.mean(out_strength)
-        results['max_out_strength'] = np.max(out_strength)
+        results['max_out_strength'] = np.max(out_strength, initial=0.0)
 
     if "funnels" in stats:
         results['funnel_num'], results['mean_funnel_size'], results[
-            'max_funnel_size'], results['min_funnel_size'], x = find_funnels(
-                g, False, best_node)
+            'max_funnel_size'], mfs, x = find_funnels(g, False, best_node)
 
     if "funnels_filtered" in stats:
         results['funnel_num_f'], results['mean_funnel_size_f'], results[
-            'max_funnel_size_f'], results['min_funnel_size_f'], results[
+            'max_funnel_size_f'], mfsf, results[
                 'rel_go_funnel_size'] = find_funnels(g, True, best_node)
 
     if "out_degree":
         d = g.degree(mode="out", loops=False)
-        results["max_out_degree"] = np.max(d)
+        results["max_out_degree"] = np.max(d, initial=0.0)
         results["avg_out_degree"] = np.mean(d)
 
     if "in_degree":
         d = g.degree(mode="in", loops=False)
-        results["max_in_degree"] = np.max(d)
+        results["max_in_degree"] = np.max(d, initial=0.0)
         results["avg_in_degree"] = np.mean(d)
 
     if "assortativity_deg" in stats:
@@ -93,17 +92,29 @@ def calculate_graph_stats(nodes, edges, stats, best_node):
     if "density" in stats:
         results["density"] = g.density()
 
-    if "girth" in stats:
-        results["girth"] = g.girth()
+    if "components" in stats:
+        components = g.components(mode="weak")
+        if len(components) > 0:
+            comp_sizes = components.sizes()
+            largest_cc_size = np.max(comp_sizes)
+            largest_cc_i = comp_sizes.index(largest_cc_size)
 
-    if "radius" in stats:
-        results["radius"] = g.radius()
+            largest_cc_subgraph = components.subgraphs()[largest_cc_i]
+            largest_cc_subgraph.to_undirected()
+            results["num_cc"] = len(components)
+            results["largest_cc"] = largest_cc_size
+            results["largest_cc_radius"] = largest_cc_subgraph.radius()
+        else:
+            results["num_cc"] = 0
+            results["largest_cc"] = 0
+            results["largest_cc_radius"] = 0
 
     if "avg_path_len" in stats:
         results["avg_path_len"] = g.average_path_length()
 
     if "cliques_num" in stats:
-        results["cliques_num"] = g.clique_number()
+        cliques = g.cliques()
+        results["cliques_num"] = len(cliques)
 
     if "maximal_cliques_num" in stats:
         results["maximal_cliques_num"] = len(g.maximal_cliques())
