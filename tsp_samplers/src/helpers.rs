@@ -114,8 +114,8 @@ pub fn inrange_2change(perm1: &[u16], perm2: &[u16], mut_d: usize) -> bool {
 fn two_exchange_allperms(perm: &[u16]) -> Vec<Vec<u16>> {
     let mut perms = vec![];
     let n = perm.len();
-    for a in 0..(n - 1) {
-        for b in (a + 1)..n {
+    for a in 0..(n - 2) {
+        for b in (a + 2)..n {
             let new_perm = two_exchange(perm, a, b);
             perms.push(new_perm);
         }
@@ -128,9 +128,9 @@ pub fn mutate_2exchange(perm: &[u16], n_swaps: usize, rng: &mut ChaCha8Rng) -> V
     let mut mutation = perm.to_owned();
 
     for _i in 0..n_swaps {
-        let between = Uniform::from(0..perm.len() - 1);
+        let between = Uniform::from(0..perm.len() - 2);
         let a = between.sample(rng);
-        let between_a = Uniform::from(a + 1..perm.len());
+        let between_a = Uniform::from(a + 2..perm.len());
         let b = between_a.sample(rng);
 
         mutation = two_exchange(perm, a, b);
