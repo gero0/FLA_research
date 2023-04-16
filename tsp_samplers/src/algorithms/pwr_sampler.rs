@@ -13,10 +13,11 @@ pub struct PwrSampler {
     hc_counter: u64,
     oracle_counter: u128,
     next_id: u16,
+    mut_d: usize,
 }
 
 impl PwrSampler {
-    pub fn new(distance_matrix: Vec<Vec<i32>>, seed: Option<u64>) -> Self {
+    pub fn new(distance_matrix: Vec<Vec<i32>>, mut_d: usize, seed: Option<u64>) -> Self {
         let rng = match seed {
             Some(seed) => ChaCha8Rng::seed_from_u64(seed),
             None => ChaCha8Rng::from_entropy(),
@@ -30,6 +31,7 @@ impl PwrSampler {
             hc_counter: 0,
             oracle_counter: 0,
             next_id: 0,
+            mut_d,
         }
     }
 
@@ -61,7 +63,7 @@ impl PwrSampler {
         let distance_matrix = &self.distance_matrix;
         for s in &self.nodes {
             for _ in 0..e_att {
-                let start = mutate_2exchange(s.0, 2, &mut self.rng);
+                let start = mutate_2exchange(s.0, self.mut_d, &mut self.rng);
                 let new_s = two_opt_firsti(&start, distance_matrix);
                 self.hc_counter += 1;
                 self.oracle_counter += new_s.2;

@@ -37,6 +37,7 @@ enum Commands {
         n_max: u32,
         n_att: u32,
         e_att: u32,
+        mut_d: usize,
         seed: Option<u64>,
     },
     Exhaustive {},
@@ -87,12 +88,14 @@ fn main() {
             n_max,
             n_att,
             e_att,
+            mut_d,
             seed,
         } => sample_pwr(
             file,
             n_max,
             n_att,
             e_att,
+            mut_d,
             cli.iters,
             &cli.output_dir.unwrap_or("twophase_latest".into()),
             seed,
@@ -123,11 +126,12 @@ fn sample_pwr(
     n_max: u32,
     n_att: u32,
     e_att: u32,
+    mut_d: usize,
     iters: u32,
     output_dir: &str,
     seed: Option<u64>,
 ) {
-    let mut sampler = PwrSampler::new(file.distance_matrix, seed);
+    let mut sampler = PwrSampler::new(file.distance_matrix, mut_d, seed);
     let mut time_ms = 0;
 
     for i in 0..iters {
