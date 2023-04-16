@@ -1,6 +1,7 @@
-use std::{error::Error, fs::File, io::Write};
+use std::{error::Error, fs::File, io::{Write, BufWriter}};
 
 use crate::algorithms::{EdgeMap, NodeMap};
+
 
 pub fn save_json(
     nodes: &NodeMap,
@@ -14,7 +15,8 @@ pub fn save_json(
     let nodes = nodes.into_iter();
     let edges = edges.into_iter();
 
-    let mut f = File::create(path)?;
+    let f = File::create(path)?;
+    let mut f = BufWriter::with_capacity(1024 * 1024, f);
     f.write("{\n".as_bytes())?;
     f.write_fmt(format_args!(
         "\"hc_count\":{},\n\"oracle_count\":{},\n\"time_ms\":{},\n\"comment\":\"{}\",\n",
