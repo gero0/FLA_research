@@ -133,7 +133,7 @@ pub fn mutate_2exchange(perm: &[u16], n_swaps: usize, rng: &mut ChaCha8Rng) -> V
         let between_a = Uniform::from(a + 2..perm.len());
         let b = between_a.sample(rng);
 
-        mutation = two_exchange(perm, a, b);
+        mutation = two_exchange(&mutation, a, b);
     }
 
     mutation
