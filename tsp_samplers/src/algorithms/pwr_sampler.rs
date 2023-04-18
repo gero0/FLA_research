@@ -1,7 +1,9 @@
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 
-use crate::helpers::{random_solution, mutate_2exchange};
+use crate::helpers::{mutate_2exchange, random_solution};
 
 use super::{two_opt_besti, two_opt_firsti, EdgeMap, NodeMap, SamplingAlg};
 
@@ -14,6 +16,7 @@ pub struct PwrSampler {
     oracle_counter: u128,
     next_id: u16,
     mut_d: usize,
+    pub missed: AtomicUsize,
 }
 
 impl PwrSampler {
@@ -32,6 +35,7 @@ impl PwrSampler {
             oracle_counter: 0,
             next_id: 0,
             mut_d,
+            missed: AtomicUsize::new(0),
         }
     }
 
@@ -74,11 +78,18 @@ impl PwrSampler {
                             self.edges.insert(((s.1).0, new_s.0), 1);
                         }
                     },
-                    None => {}
+                    None => {
+                        self.missed.fetch_add(1, Ordering::Relaxed);
+                    }
                 }
             }
         }
     }
+    
+pub fn missed(&self) -> usize {
+    return self.missed.load(Ordering::Relaxed);
+}
+
 }
 
 impl SamplingAlg for PwrSampler {

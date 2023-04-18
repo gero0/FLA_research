@@ -146,8 +146,13 @@ fn sample_pwr(
             output_dir,
             i,
             &format!(
-                "n_max:{} n_att:{} e_att:{} iters:{} file:{}",
-                n_max, n_att, e_att, iters, file.name
+                "n_max:{} n_att:{} e_att:{} iters:{} missed:{} file:{}",
+                n_max,
+                n_att,
+                e_att,
+                iters,
+                sampler.missed(),
+                file.name
             ),
         );
     }
@@ -199,7 +204,12 @@ fn print_progress_bar(i: u32, max: u32, width: u32) {
     let progress = i as f32 / max as f32;
     let filled = progress * (width as f32);
     let time = chrono::Local::now().time();
-    print!("[{:02}:{:02}:{:02}] ", time.hour(), time.minute(), time.second());
+    print!(
+        "[{:02}:{:02}:{:02}] ",
+        time.hour(),
+        time.minute(),
+        time.second()
+    );
     for i in 0..width {
         if i > filled as u32 {
             print!(".");
