@@ -7,11 +7,12 @@ use algorithms::{
     exhaustive_sampler::ExhaustiveSampler, snowball_sampler::SnowballSampler, two_opt_besti,
     PwrSampler, SamplingAlg,
 };
+use chrono::Timelike;
 use clap::{Parser, Subcommand};
 use helpers::{parse_intermediate_format, TspFile};
 use std::time::Instant;
 
-const PBAR_W: u32 = 32;
+const PBAR_W: u32 = 100;
 
 #[derive(Parser)]
 #[command(author="K.Lesnianski", version="1.0", about, long_about = None)]
@@ -197,6 +198,8 @@ fn sample_snowball(
 fn print_progress_bar(i: u32, max: u32, width: u32) {
     let progress = i as f32 / max as f32;
     let filled = progress * (width as f32);
+    let time = chrono::Local::now().time();
+    print!("[{:02}:{:02}:{:02}] ", time.hour(), time.minute(), time.second());
     for i in 0..width {
         if i > filled as u32 {
             print!(".");
@@ -204,5 +207,5 @@ fn print_progress_bar(i: u32, max: u32, width: u32) {
             print!("#");
         }
     }
-    print!(" {}/{}\n", i, max);
+    print!(" {}/{} ({:.0})%\n", i, max, progress * 100.0);
 }
