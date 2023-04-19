@@ -164,13 +164,13 @@ impl SnowballSampler {
         self.last_node_id += 1;
         self.last_node_id - 1
     }
+
+    pub fn get_samples(&self) -> (&NodeMap, &EdgeMap) {
+        (&self.nodes, &self.edges)
+    }
 }
 
 impl SamplingAlg for SnowballSampler {
-    fn get_samples(&self) -> (&NodeMap, &EdgeMap) {
-        (&self.nodes, &self.edges)
-    }
-
     fn get_hc_calls(&self) -> u64 {
         self.hc_counter
     }

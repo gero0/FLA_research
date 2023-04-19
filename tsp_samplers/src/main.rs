@@ -5,7 +5,7 @@ mod ser;
 use crate::ser::save_json;
 use algorithms::{
     exhaustive_sampler::ExhaustiveSampler, snowball_sampler::SnowballSampler, two_opt_besti,
-    PwrSampler, SamplingAlg,
+    EdgeMap, NodeMap, PwrSampler, SamplingAlg,
 };
 use chrono::Timelike;
 use clap::{Parser, Subcommand};
@@ -46,6 +46,8 @@ enum Commands {
 
 fn save_sampling_results(
     sampler: &impl SamplingAlg,
+    nodes: &NodeMap,
+    edges: &EdgeMap,
     time_ms: u128,
     dirname: &str,
     i: u32,
@@ -54,7 +56,6 @@ fn save_sampling_results(
     let _ = std::fs::create_dir(&dirname);
     let path = format!("{}/samples_{}.json", &dirname, i);
 
-    let (nodes, edges) = sampler.get_samples();
     let hc_c = sampler.get_hc_calls();
     let o_c = sampler.get_oracle_calls();
 
@@ -113,8 +114,11 @@ fn sample_exhaustive(file: TspFile, output_dir: &str) {
     sampler.sample();
     let time_ms = start.elapsed().as_millis();
 
+    let (nodes, edges) = sampler.get_samples();
     save_sampling_results(
         &sampler,
+        nodes,
+        edges,
         time_ms,
         output_dir,
         0,
@@ -140,8 +144,11 @@ fn sample_pwr(
         let start = Instant::now();
         sampler.sample(n_max, n_att, e_att);
         time_ms += start.elapsed().as_millis();
+        let (nodes, edges) = sampler.get_samples();
         save_sampling_results(
             &sampler,
+            &nodes,
+            &edges,
             time_ms,
             output_dir,
             i,
@@ -187,8 +194,11 @@ fn sample_snowball(
         sampler.sample();
         time_ms += start.elapsed().as_millis();
 
+        let (nodes, edges) = sampler.get_samples();
         save_sampling_results(
             &sampler,
+            nodes,
+            edges,
             time_ms,
             output_dir,
             i,

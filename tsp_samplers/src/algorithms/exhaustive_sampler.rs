@@ -69,7 +69,7 @@ impl ExhaustiveSampler {
             for other_lo in self.nodes.iter() {
                 //Compare with each local optimum in search space
                 //If you can get to this optimum from current solution with mut_d swaps, add/update edge in LON
-                if inrange_2change(perm, other_lo.0, self.mut_d){
+                if inrange_2change(perm, other_lo.0, self.mut_d) {
                     let lo_id = self.nodes.get(lo).unwrap().0;
                     match self.edges.get_mut(&(other_lo.1 .0, lo_id)) {
                         Some(weight) => {
@@ -88,13 +88,13 @@ impl ExhaustiveSampler {
         self.last_node_id += 1;
         self.last_node_id - 1
     }
+
+    pub fn get_samples(&self) -> (&NodeMap, &EdgeMap) {
+        (&self.nodes, &self.edges)
+    }
 }
 
 impl SamplingAlg for ExhaustiveSampler {
-    fn get_samples(&self) -> (&NodeMap, &EdgeMap) {
-        (&self.nodes, &self.edges)
-    }
-
     fn get_hc_calls(&self) -> u64 {
         self.hc_counter
     }

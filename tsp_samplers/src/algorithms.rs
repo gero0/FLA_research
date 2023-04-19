@@ -18,5 +18,4 @@ pub use two_opt::{two_opt_besti, two_opt_firsti};
 pub trait SamplingAlg {
     fn get_hc_calls(&self) -> u64;
     fn get_oracle_calls(&self) -> u128;
-    fn get_samples(&self) -> (&NodeMap, &EdgeMap);
 }
