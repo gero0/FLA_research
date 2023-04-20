@@ -8,7 +8,7 @@ use std::{
 };
 
 // use itertools::Itertools;
-use rand::SeedableRng;
+use rand::{SeedableRng, RngCore};
 use rand_chacha::ChaCha8Rng;
 
 use crate::helpers::{mutate_2exchange, random_solution};
@@ -65,6 +65,7 @@ impl PwrSampler {
         let hc_counter = &self.hc_counter;
         let oracle_counter = &self.oracle_counter;
         let next_id = &self.next_id;
+        let rng = &self.rng;
 
         thread::scope(|s| {
             for _ in 0..thread_count {
@@ -75,7 +76,9 @@ impl PwrSampler {
                 s.spawn(move || {
                     for _ in 0..n_limit {
                         for _ in 0..n_att {
-                            let start = random_solution(n as u16, None, true);
+                            let mut rnglock = rng.lock().unwrap();
+                            let start = random_solution(n as u16, Some(rnglock.next_u64()), true);
+                            drop(rnglock);
                             let (solution, s_len, oracle) = two_opt_besti(&start, distance_matrix);
                             hc_counter.fetch_add(1, Ordering::Relaxed);
                             oracle_counter.fetch_add(oracle as u64, Ordering::Relaxed);
