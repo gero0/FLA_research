@@ -16,7 +16,7 @@ pub struct ExhaustiveSampling {
     mut_d: usize,
     nodes: NodeMap,
     edges: EdgeMap,
-    last_node_id: u16,
+    last_node_id: u32,
     hc_counter: u64,
     oracle_counter: u128,
 }
@@ -27,7 +27,7 @@ impl ExhaustiveSampling {
         mut_d: usize,
         hillclimb_alg: HillclimbFunction,
     ) -> Self {
-        let set: Vec<_> = (0..distance_matrix.len() as u16).collect();
+        let set: Vec<_> = (0..distance_matrix.len() as u32).collect();
         let permpath = String::from(generate_perms(&set));
 
         Self {
@@ -84,7 +84,7 @@ impl ExhaustiveSampling {
         }
     }
 
-    fn get_next_id(&mut self) -> u16 {
+    fn get_next_id(&mut self) -> u32 {
         self.last_node_id += 1;
         self.last_node_id - 1
     }
@@ -104,7 +104,7 @@ impl SamplingAlg for ExhaustiveSampling {
     }
 }
 
-pub fn generate_perms(set: &[u16]) -> &str {
+pub fn generate_perms(set: &[u32]) -> &str {
     let set = set.to_owned();
     let n = set.len();
 
@@ -122,9 +122,9 @@ pub fn generate_perms(set: &[u16]) -> &str {
     return "perm_temp.txt";
 }
 
-fn deserialize(line: &str) -> Vec<u16> {
+fn deserialize(line: &str) -> Vec<u32> {
     let line = line.strip_prefix("[").unwrap().strip_suffix("]").unwrap();
-    let mut perm: Vec<u16> = vec![];
+    let mut perm: Vec<u32> = vec![];
     for s in line.split(",") {
         let s = s.strip_prefix(" ").unwrap_or(s);
         perm.push(s.parse().unwrap());

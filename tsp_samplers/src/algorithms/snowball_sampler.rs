@@ -13,13 +13,13 @@ pub struct SnowballSampling {
     rng: ChaCha8Rng,
     distance_matrix: Vec<Vec<i32>>,
     hillclimb: HillclimbFunction,
-    last_node_id: u16,
+    last_node_id: u32,
     nodes: NodeMap,
     edges: EdgeMap,
-    walk_visited: FxHashSet<u16>,
+    walk_visited: FxHashSet<u32>,
     hc_counter: u64,
     oracle_counter: u128,
-    current_lo: Option<Vec<u16>>,
+    current_lo: Option<Vec<u32>>,
 }
 
 impl SnowballSampling {
@@ -55,14 +55,14 @@ impl SnowballSampling {
         }
     }
 
-    fn climb(&mut self, start: &Vec<u16>) -> (Vec<u16>, i32) {
+    fn climb(&mut self, start: &Vec<u32>) -> (Vec<u32>, i32) {
         self.hc_counter += 1;
         let (perm, len, oracle) = (self.hillclimb)(start, &self.distance_matrix);
         self.oracle_counter += oracle;
         return (perm, len);
     }
 
-    fn insert_node(&mut self, node: &Vec<u16>, len: i32) -> u16 {
+    fn insert_node(&mut self, node: &Vec<u32>, len: i32) -> u32 {
         let id = self.get_next_id();
         self.nodes.insert(node.clone(), (id, len));
         return id;
@@ -71,7 +71,7 @@ impl SnowballSampling {
     pub fn sample(&mut self) {
         if self.current_lo.is_none() {
             let start = random_solution(
-                self.distance_matrix.len() as u16,
+                self.distance_matrix.len() as u32,
                 Some(self.rng.next_u64()),
                 true,
             );
@@ -94,7 +94,7 @@ impl SnowballSampling {
         }
     }
 
-    fn snowball(&mut self, depth: u32, current_lo: &Vec<u16>) {
+    fn snowball(&mut self, depth: u32, current_lo: &Vec<u32>) {
         if depth == 0 {
             return;
         }
@@ -123,7 +123,7 @@ impl SnowballSampling {
         }
     }
 
-    fn random_walk_step(&mut self, c_lo: &Vec<u16>) -> Vec<u16> {
+    fn random_walk_step(&mut self, c_lo: &Vec<u32>) -> Vec<u32> {
         let mut neighbors = vec![];
         let c_solution_id = self
             .nodes
@@ -138,7 +138,7 @@ impl SnowballSampling {
 
         if neighbors.is_empty() {
             let random = random_solution(
-                self.distance_matrix.len() as u16,
+                self.distance_matrix.len() as u32,
                 Some(self.rng.next_u64()),
                 true,
             );
@@ -160,7 +160,7 @@ impl SnowballSampling {
         neighbor.0.clone()
     }
 
-    fn get_next_id(&mut self) -> u16 {
+    fn get_next_id(&mut self) -> u32 {
         self.last_node_id += 1;
         self.last_node_id - 1
     }

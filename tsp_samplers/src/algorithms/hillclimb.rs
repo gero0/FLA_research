@@ -6,9 +6,9 @@
 use crate::helpers::tour_len;
 
 pub fn hillclimb_steepest(
-    starting_tour: &Vec<u16>,
+    starting_tour: &Vec<u32>,
     distance_matrix: &Vec<Vec<i32>>,
-) -> (Vec<u16>, i32, u128) {
+) -> (Vec<u32>, i32, u128) {
     let mut current_tour = starting_tour.clone();
     let mut current_len = tour_len(&current_tour, distance_matrix);
     let mut oracle_counter = 0;
@@ -29,7 +29,7 @@ pub fn hillclimb_steepest(
     (current_tour, current_len, oracle_counter)
 }
 
-fn get_neighbors(path: &Vec<u16>) -> Vec<Vec<u16>> {
+fn get_neighbors(path: &Vec<u32>) -> Vec<Vec<u32>> {
     let mut neighbors = vec![];
 
     for i in 1..path.len() {
@@ -44,9 +44,9 @@ fn get_neighbors(path: &Vec<u16>) -> Vec<Vec<u16>> {
 }
 
 fn get_best_neighbor(
-    neighbors: &Vec<Vec<u16>>,
+    neighbors: &Vec<Vec<u32>>,
     distance_matrix: &Vec<Vec<i32>>,
-) -> (Vec<u16>, i32, u128) {
+) -> (Vec<u32>, i32, u128) {
     let mut best_len = tour_len(&neighbors[0], distance_matrix);
     let mut best_neighbor_index = 0;
     let mut oracle_counter = 1;

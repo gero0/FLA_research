@@ -24,9 +24,9 @@ impl Error for ParsingError {}
 
 //random_solution and tour_len implementation taken from tsptools library by Kacper Leśniański and Paweł Szczepaniak
 //https://github.com/gero0/tsptools
-pub fn random_solution(node_count: u16, seed: Option<u64>, preserve_first: bool) -> Vec<u16> {
+pub fn random_solution(node_count: u32, seed: Option<u64>, preserve_first: bool) -> Vec<u32> {
     let (mut nodes_remaining, mut path) = if preserve_first {
-        ((1..node_count).collect::<Vec<u16>>(), vec![0])
+        ((1..node_count).collect::<Vec<u32>>(), vec![0])
     } else {
         ((0..node_count).collect(), vec![])
     };
@@ -46,7 +46,7 @@ pub fn random_solution(node_count: u16, seed: Option<u64>, preserve_first: bool)
     path
 }
 
-pub fn tour_len(path: &Vec<u16>, distance_matrix: &Vec<Vec<i32>>) -> i32 {
+pub fn tour_len(path: &Vec<u32>, distance_matrix: &Vec<Vec<i32>>) -> i32 {
     let len: i32 = path
         .windows(2)
         .map(|w| distance_matrix[w[0] as usize][w[1] as usize])
@@ -82,7 +82,7 @@ pub fn parse_intermediate_format(path: &str) -> Result<TspFile, Box<dyn Error>> 
 
 //checks all permutations - it's ok since we're going to use it only in exhaustive search
 //on instances with N=12 max
-pub fn inrange_2change(perm1: &[u16], perm2: &[u16], mut_d: usize) -> bool {
+pub fn inrange_2change(perm1: &[u32], perm2: &[u32], mut_d: usize) -> bool {
     let mut permutations = FxHashSet::default();
     permutations.insert(perm1.to_owned());
 
@@ -111,7 +111,7 @@ pub fn inrange_2change(perm1: &[u16], perm2: &[u16], mut_d: usize) -> bool {
     false
 }
 
-fn two_exchange_allperms(perm: &[u16]) -> Vec<Vec<u16>> {
+fn two_exchange_allperms(perm: &[u32]) -> Vec<Vec<u32>> {
     let mut perms = vec![];
     let n = perm.len();
     for a in 0..(n - 2) {
@@ -124,7 +124,7 @@ fn two_exchange_allperms(perm: &[u16]) -> Vec<Vec<u16>> {
     perms
 }
 
-pub fn mutate_2exchange(perm: &[u16], n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<u16> {
+pub fn mutate_2exchange(perm: &[u32], n_swaps: usize, rng: &mut ChaCha8Rng) -> Vec<u32> {
     let mut mutation = perm.to_owned();
 
     for _i in 0..n_swaps {
@@ -139,7 +139,7 @@ pub fn mutate_2exchange(perm: &[u16], n_swaps: usize, rng: &mut ChaCha8Rng) -> V
     mutation
 }
 
-pub fn two_exchange(perm: &[u16], mut a: usize, mut b: usize) -> Vec<u16> {
+pub fn two_exchange(perm: &[u32], mut a: usize, mut b: usize) -> Vec<u32> {
     assert!(a < b);
     assert!(a < perm.len() && b < perm.len());
 

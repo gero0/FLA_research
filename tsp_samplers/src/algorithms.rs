@@ -1,8 +1,8 @@
 use rustc_hash::FxHashMap;
 
-pub type HillclimbFunction = fn(&Vec<u16>, &Vec<Vec<i32>>) -> (Vec<u16>, i32, u128);
-pub type NodeMap = FxHashMap<Vec<u16>, (u16, i32)>;
-pub type EdgeMap = FxHashMap<(u16, u16), i32>;
+pub type HillclimbFunction = fn(&Vec<u32>, &Vec<Vec<i32>>) -> (Vec<u32>, i32, u128);
+pub type NodeMap = FxHashMap<Vec<u32>, (u32, i32)>;
+pub type EdgeMap = FxHashMap<(u32, u32), i32>;
 
 pub mod exhaustive_sampler;
 pub mod hillclimb;

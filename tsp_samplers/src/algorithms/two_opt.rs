@@ -3,22 +3,22 @@
 
 use crate::helpers::tour_len;
 
-pub fn two_opt_besti(starting_tour: &Vec<u16>, distance_matrix: &Vec<Vec<i32>>) -> (Vec<u16>, i32, u128) {
+pub fn two_opt_besti(starting_tour: &Vec<u32>, distance_matrix: &Vec<Vec<i32>>) -> (Vec<u32>, i32, u128) {
     two_opt_base(starting_tour, distance_matrix, false)
 }
 
 pub fn two_opt_firsti(
-    starting_tour: &Vec<u16>,
+    starting_tour: &Vec<u32>,
     distance_matrix: &Vec<Vec<i32>>,
-) -> (Vec<u16>, i32, u128) {
+) -> (Vec<u32>, i32, u128) {
     two_opt_base(starting_tour, distance_matrix, true)
 }
 
 fn two_opt_base(
-    starting_tour: &Vec<u16>,
+    starting_tour: &Vec<u32>,
     distance_matrix: &Vec<Vec<i32>>,
     first_i: bool,
-) -> (Vec<u16>, i32, u128) {
+) -> (Vec<u32>, i32, u128) {
     let mut tour = starting_tour.to_owned();
     let n = tour.len();
     let mut improvement = true;
