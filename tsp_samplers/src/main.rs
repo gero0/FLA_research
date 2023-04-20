@@ -10,6 +10,7 @@ use algorithms::{
 use chrono::Timelike;
 use clap::{Parser, Subcommand};
 use helpers::{parse_intermediate_format, TspFile};
+use ser::JsonField;
 use std::time::Instant;
 
 const PBAR_W: u32 = 100;
@@ -51,6 +52,7 @@ fn save_sampling_results(
     time_ms: u128,
     dirname: &str,
     i: u32,
+    addl_fields: &[(&str, JsonField)],
     comment: &str,
 ) {
     let _ = std::fs::create_dir(&dirname);
@@ -59,7 +61,17 @@ fn save_sampling_results(
     let hc_c = sampler.get_hc_calls();
     let o_c = sampler.get_oracle_calls();
 
-    save_json(nodes, edges, hc_c, o_c, time_ms, comment, path.as_str()).unwrap();
+    save_json(
+        nodes,
+        edges,
+        hc_c,
+        o_c,
+        time_ms,
+        comment,
+        addl_fields,
+        path.as_str(),
+    )
+    .unwrap();
 }
 
 fn main() {
@@ -122,6 +134,7 @@ fn sample_exhaustive(file: TspFile, output_dir: &str) {
         time_ms,
         output_dir,
         0,
+        &[],
         &format!("exhaustive with D=2 file:{}", file.name),
     );
 }
@@ -152,14 +165,10 @@ fn sample_tp(
             time_ms,
             output_dir,
             i,
+            &[("missed", JsonField::Int(sampler.missed() as u128))],
             &format!(
-                "n_max:{} n_att:{} e_att:{} iters:{} missed:{} file:{}",
-                n_max,
-                n_att,
-                e_att,
-                iters,
-                sampler.missed(),
-                file.name
+                "n_max:{} n_att:{} e_att:{} iters:{} file:{}",
+                n_max, n_att, e_att, iters, file.name
             ),
         );
     }
@@ -202,6 +211,7 @@ fn sample_snowball(
             time_ms,
             output_dir,
             i,
+            &[],
             &format!(
                 "walk_len:{} n_edges:{} depth:{} D: {} iters:{} file:{}",
                 walk_len, n_edges, depth, mut_d, iters, file.name
