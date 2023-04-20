@@ -5,7 +5,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 use super::{EdgeMap, HillclimbFunction, NodeMap, SamplingAlg};
 
-pub struct SnowballSampler {
+pub struct SnowballSampling {
     walk_len: u32,
     n_edges: u32,
     depth: u32,
@@ -22,7 +22,7 @@ pub struct SnowballSampler {
     current_lo: Option<Vec<u16>>,
 }
 
-impl SnowballSampler {
+impl SnowballSampling {
     pub fn new(
         walk_len: u32,
         n_edges: u32,
@@ -170,7 +170,7 @@ impl SnowballSampler {
     }
 }
 
-impl SamplingAlg for SnowballSampler {
+impl SamplingAlg for SnowballSampling {
     fn get_hc_calls(&self) -> u64 {
         self.hc_counter
     }

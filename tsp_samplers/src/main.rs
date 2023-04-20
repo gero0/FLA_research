@@ -4,8 +4,8 @@ mod ser;
 
 use crate::ser::save_json;
 use algorithms::{
-    exhaustive_sampler::ExhaustiveSampler, snowball_sampler::SnowballSampler, two_opt_besti,
-    EdgeMap, NodeMap, PwrSampler, SamplingAlg,
+    exhaustive_sampler::ExhaustiveSampling, snowball_sampler::SnowballSampling, two_opt_besti,
+    EdgeMap, NodeMap, SamplingAlg, TPSampling,
 };
 use chrono::Timelike;
 use clap::{Parser, Subcommand};
@@ -34,7 +34,7 @@ enum Commands {
         mut_d: usize,
         seed: Option<u64>,
     },
-    Pwr {
+    TP {
         n_max: u32,
         n_att: u32,
         e_att: u32,
@@ -86,13 +86,13 @@ fn main() {
             &cli.output_dir.unwrap_or("snowball_latest".into()),
             seed,
         ),
-        Commands::Pwr {
+        Commands::TP {
             n_max,
             n_att,
             e_att,
             mut_d,
             seed,
-        } => sample_pwr(
+        } => sample_tp(
             file,
             n_max,
             n_att,
@@ -109,7 +109,7 @@ fn main() {
 }
 
 fn sample_exhaustive(file: TspFile, output_dir: &str) {
-    let mut sampler = ExhaustiveSampler::new(file.distance_matrix, 2, two_opt_besti);
+    let mut sampler = ExhaustiveSampling::new(file.distance_matrix, 2, two_opt_besti);
     let start = Instant::now();
     sampler.sample();
     let time_ms = start.elapsed().as_millis();
@@ -126,7 +126,7 @@ fn sample_exhaustive(file: TspFile, output_dir: &str) {
     );
 }
 
-fn sample_pwr(
+fn sample_tp(
     file: TspFile,
     n_max: u32,
     n_att: u32,
@@ -136,7 +136,7 @@ fn sample_pwr(
     output_dir: &str,
     seed: Option<u64>,
 ) {
-    let mut sampler = PwrSampler::new(file.distance_matrix, mut_d, seed);
+    let mut sampler = TPSampling::new(file.distance_matrix, mut_d, seed);
     let mut time_ms = 0;
 
     for i in 0..iters {
@@ -175,7 +175,7 @@ fn sample_snowball(
     output_dir: &str,
     seed: Option<u64>,
 ) {
-    let mut sampler = SnowballSampler::new(
+    let mut sampler = SnowballSampling::new(
         walk_len,
         n_edges,
         depth,

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 //Based on implementations from tsptools library by Kacper Leśniański and Paweł Szczepaniak
 //https://github.com/gero0/tsptools
 

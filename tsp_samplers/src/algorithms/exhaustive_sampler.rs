@@ -9,7 +9,7 @@ use crate::helpers::inrange_2change;
 
 use super::{EdgeMap, HillclimbFunction, NodeMap, SamplingAlg};
 
-pub struct ExhaustiveSampler {
+pub struct ExhaustiveSampling {
     distance_matrix: Vec<Vec<i32>>,
     hillclimb_alg: HillclimbFunction,
     permpath: String,
@@ -21,7 +21,7 @@ pub struct ExhaustiveSampler {
     oracle_counter: u128,
 }
 
-impl ExhaustiveSampler {
+impl ExhaustiveSampling {
     pub fn new(
         distance_matrix: Vec<Vec<i32>>,
         mut_d: usize,
@@ -94,7 +94,7 @@ impl ExhaustiveSampler {
     }
 }
 
-impl SamplingAlg for ExhaustiveSampler {
+impl SamplingAlg for ExhaustiveSampling {
     fn get_hc_calls(&self) -> u64 {
         self.hc_counter
     }
