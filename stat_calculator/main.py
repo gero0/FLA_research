@@ -28,7 +28,7 @@ def process_file(path):
 
         edges = f["edges"]
 
-        return (nodes, edges, f["time_ms"], f["hc_count"], f["oracle_count"])
+        return (nodes, edges, f["time_ms"], f["opt_count"], f["oracle_count"])
 
 
 def calculate_graph_stats(nodes, edges, stats, best_node):
@@ -193,11 +193,11 @@ def main():
     df = pd.DataFrame()
     files = load(path)
     for index, file in enumerate(files):
-        nodes, edges, time, hc_count, oracle_count = process_file(
+        nodes, edges, time, opt_count, oracle_count = process_file(
             join(path, file))
         row = {
             "time_ms": time,
-            "hc_count": hc_count,
+            "opt_count": opt_count,
             "oracle_count": oracle_count
         }
         results = calculate_stats(nodes, edges, stats)

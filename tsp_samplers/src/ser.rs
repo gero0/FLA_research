@@ -26,7 +26,7 @@ pub fn save_json(
 
     f.write("{\n".as_bytes())?;
     f.write_fmt(format_args!(
-        "\"hc_count\":{},\n\"oracle_count\":{},\n\"time_ms\":{},\n\"comment\":\"{}\",\n",
+        "\"opt_count\":{},\n\"oracle_count\":{},\n\"time_ms\":{},\n\"comment\":\"{}\",\n",
         hc_count, oracle_count, time_ms, comment
     ))?;
 

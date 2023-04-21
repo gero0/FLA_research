@@ -25,7 +25,7 @@ if args.output is None:
 else:
     output = args.output
 
-nodes, edges, time, hc_count, oracle_count = process_file(args.filename)
+nodes, edges, time, opt_count, oracle_count = process_file(args.filename)
 
 (edge_list, weight_list) = split_edge_data(edges)
 g = Graph(n=len(nodes),
