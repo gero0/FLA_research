@@ -22,7 +22,7 @@ fn two_opt_base(
     let mut tour = starting_tour.to_owned();
     let n = tour.len();
     let mut improvement = true;
-
+    let mut iter_counter = 0;
     while improvement {
         improvement = false;
         let mut min_dist = 0;
@@ -31,6 +31,7 @@ fn two_opt_base(
 
         'outer: for i in 0..(n - 1) {
             for j in (i + 1)..n {
+                iter_counter += 1;
                 let distance = distance_matrix[tour[i] as usize][tour[j] as usize]
                     + distance_matrix[tour[i + 1] as usize][tour[(j + 1) % n] as usize]
                     - distance_matrix[tour[i] as usize][tour[i + 1] as usize]
@@ -62,6 +63,6 @@ fn two_opt_base(
     }
 
     let len = tour_len(&tour, distance_matrix);
-    (tour, len, 1)
+    (tour, len, iter_counter)
 }
 
