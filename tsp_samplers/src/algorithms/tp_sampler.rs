@@ -114,7 +114,7 @@ impl TPSampling {
         let chunks = node_perms.chunks(n_per_thread);
 
         //boilerplate to appease the borrow checker
-        let nodes = &self.nodes;
+        let nodes = &self.nodes.lock().unwrap();
         let edges = &self.edges;
         let rng = &self.rng;
         let missed = &self.missed;
@@ -135,7 +135,6 @@ impl TPSampling {
                             oracle_counter.fetch_add(new_s.2 as u64, Ordering::Relaxed);
 
                             let mut edges = edges.lock().unwrap();
-                            let nodes = nodes.lock().unwrap();
 
                             match nodes.get(&new_s.0) {
                                 Some(new_n) => match edges.get_mut(&((n.1).0, new_n.0)) {
