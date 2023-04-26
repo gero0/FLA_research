@@ -1,4 +1,9 @@
-use crate::{helpers::{mutate_2exchange, random_solution}, save_sampling_results};
+use std::time::Instant;
+
+use crate::{
+    helpers::{mutate_2exchange, random_solution},
+    save_sampling_results, print_progress_bar, PBAR_W,
+};
 use rand::{distributions::Uniform, prelude::Distribution, RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -16,10 +21,16 @@ pub struct SnowballSampling {
     last_node_id: u32,
     nodes: NodeMap,
     edges: EdgeMap,
+    save_treshold: usize,
+    output_dir: String,
+    comment: String,
     walk_visited: FxHashSet<u32>,
     hc_counter: u64,
     oracle_counter: u64,
     current_lo: Option<Vec<u32>>,
+    last_instant: Instant,
+    time_ms: u128,
+    save_counter: u32,
 }
 
 impl SnowballSampling {
@@ -30,6 +41,9 @@ impl SnowballSampling {
         mut_d: usize,
         distance_matrix: Vec<Vec<i32>>,
         hillclimb_function: HillclimbFunction,
+        save_treshold: usize,
+        output_dir: &str,
+        comment: &str,
         seed: Option<u64>,
     ) -> Self {
         let rng = match seed {
@@ -52,6 +66,12 @@ impl SnowballSampling {
             hc_counter: 0,
             oracle_counter: 0,
             current_lo: None,
+            save_treshold,
+            output_dir: String::from(output_dir),
+            comment: String::from(comment),
+            last_instant: Instant::now(),
+            time_ms: 0,
+            save_counter: 0,
         }
     }
 
@@ -65,10 +85,29 @@ impl SnowballSampling {
     fn insert_node(&mut self, node: &Vec<u32>, len: i32) -> u32 {
         let id = self.get_next_id();
         self.nodes.insert(node.clone(), (id, len));
+        if (id + 1) % self.save_treshold as u32 == 0 {
+            self.time_ms += self.last_instant.elapsed().as_millis();
+            save_sampling_results(
+                self.hc_counter,
+                self.oracle_counter,
+                &self.nodes,
+                &self.edges,
+                self.time_ms,
+                &self.output_dir,
+                self.save_counter,
+                &[],
+                &self.comment,
+            );
+            self.save_counter += 1;
+            self.last_instant = Instant::now();
+        }
         return id;
     }
 
     pub fn sample(&mut self) {
+        
+        self.last_instant = Instant::now();
+
         if self.current_lo.is_none() {
             let start = random_solution(
                 self.distance_matrix.len() as u32,
@@ -80,7 +119,9 @@ impl SnowballSampling {
             self.current_lo = Some(current_lo);
         }
 
-        for _ in 0..self.walk_len {
+        for i in 0..self.walk_len {
+            print_progress_bar(i, self.walk_len, PBAR_W);
+
             let current_lo = self.current_lo.as_ref().unwrap().clone();
             self.snowball(self.depth, &current_lo);
             let id = self
@@ -92,6 +133,18 @@ impl SnowballSampling {
             let new_lo = self.random_walk_step(&current_lo);
             self.current_lo = Some(new_lo);
         }
+
+        save_sampling_results(
+            self.hc_counter,
+            self.oracle_counter,
+            &self.nodes,
+            &self.edges,
+            self.time_ms,
+            &self.output_dir,
+            self.save_counter,
+            &[],
+            &self.comment,
+        );
     }
 
     fn snowball(&mut self, depth: u32, current_lo: &Vec<u32>) {

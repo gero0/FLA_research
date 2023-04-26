@@ -13,13 +13,12 @@ use helpers::{parse_intermediate_format, TspFile};
 use ser::JsonField;
 use std::time::Instant;
 
-const PBAR_W: u32 = 100;
+pub const PBAR_W: u32 = 100;
 
 #[derive(Parser)]
 #[command(author="K.Lesnianski", version="1.0", about, long_about = None)]
 struct Cli {
     input_file: String,
-    iters: u32,
     output_dir: Option<String>,
 
     #[command(subcommand)]
@@ -33,9 +32,11 @@ enum Commands {
         n_edges: u32,
         depth: u32,
         mut_d: usize,
+        save_treshold: usize,
         seed: Option<u64>,
     },
     TP {
+        iters: u32,
         n_max: u32,
         n_att: u32,
         e_att: u32,
@@ -85,6 +86,7 @@ fn main() {
             n_edges,
             depth,
             mut_d,
+            save_treshold,
             seed,
         } => sample_snowball(
             file,
@@ -92,11 +94,12 @@ fn main() {
             n_edges,
             depth,
             mut_d,
-            cli.iters,
+            save_treshold,
             &cli.output_dir.unwrap_or("snowball_latest".into()),
             seed,
         ),
         Commands::TP {
+            iters,
             n_max,
             n_att,
             e_att,
@@ -108,7 +111,7 @@ fn main() {
             n_att,
             e_att,
             mut_d,
-            cli.iters,
+            iters,
             &cli.output_dir.unwrap_or("twophase_latest".into()),
             seed,
         ),
@@ -180,10 +183,15 @@ fn sample_snowball(
     n_edges: u32,
     depth: u32,
     mut_d: usize,
-    iters: u32,
+    save_treshold: usize,
     output_dir: &str,
     seed: Option<u64>,
 ) {
+    let comment = &format!(
+        "walk_len:{} n_edges:{} depth:{} D: {} save_treshold:{} file:{}",
+        walk_len, n_edges, depth, mut_d, save_treshold, file.name
+    );
+
     let mut sampler = SnowballSampling::new(
         walk_len,
         n_edges,
@@ -191,34 +199,37 @@ fn sample_snowball(
         mut_d,
         file.distance_matrix,
         two_opt_besti,
+        save_treshold,
+        output_dir,
+        comment,
         seed,
     );
 
-    let mut time_ms = 0;
+    // let mut time_ms = 0;
 
-    for i in 0..iters {
-        print_progress_bar(i + 1, iters, PBAR_W);
+    // print_progress_bar(i + 1, iters, PBAR_W);
 
-        let start = Instant::now();
-        sampler.sample();
-        time_ms += start.elapsed().as_millis();
+    // let start = Instant::now();
+    // sampler.sample();
+    // time_ms += start.elapsed().as_millis();
 
-        let (nodes, edges) = sampler.get_samples();
-        save_sampling_results(
-            sampler.get_hc_calls(),
-            sampler.get_oracle_calls(),
-            nodes,
-            edges,
-            time_ms,
-            output_dir,
-            i,
-            &[],
-            &format!(
-                "walk_len:{} n_edges:{} depth:{} D: {} iters:{} file:{}",
-                walk_len, n_edges, depth, mut_d, iters, file.name
-            ),
-        )
-    }
+    // let (nodes, edges) = sampler.get_samples();
+    // save_sampling_results(
+    //     sampler.get_hc_calls(),
+    //     sampler.get_oracle_calls(),
+    //     nodes,
+    //     edges,
+    //     time_ms,
+    //     output_dir,
+    //     i,
+    //     &[],
+    //     &format!(
+    //         "walk_len:{} n_edges:{} depth:{} D: {} iters:{} file:{}",
+    //         walk_len, n_edges, depth, mut_d, iters, file.name
+    //     ),
+    // )
+
+    sampler.sample();
 }
 
 fn print_progress_bar(i: u32, max: u32, width: u32) {
