@@ -47,7 +47,7 @@ def calculate_graph_stats(nodes, edges, stats, best_node):
               },
               directed=True)
 
-    if "paths_to_go":
+    if "paths_to_go" in stats:
         paths = g.get_shortest_paths(best_node[0], weights=None, mode="in")
         existing_paths = [p for p in paths if len(p) > 1]
         path_lens = [len(p) - 1 for p in existing_paths]
@@ -56,7 +56,7 @@ def calculate_graph_stats(nodes, edges, stats, best_node):
         results['avg_go_path_len'] = np.mean(path_lens)
         results['max_go_path_len'] = np.max(path_lens, initial=0.0)
 
-    if "strength":
+    if "strength" in stats:
         in_strength = g.strength(mode="in", loops=False)
         out_strength = g.strength(mode="out", loops=False)
         results['avg_in_strength'] = np.mean(in_strength)
@@ -178,11 +178,23 @@ def main():
                         "--output",
                         help="Name of output file",
                         required=False)
+
+    parser.add_argument("-l",
+                        "--limit",
+                        help="limit input files to process",
+                        required=False)
+
     args = parser.parse_args()
 
     path = args.dirname
     stats = args.stats
     output = args.output
+
+    limit = args.limit
+    if limit is None:
+        limit = 999999999999999
+    else:
+        limit = int(args.limit)
 
     if output is None:
         output = "results.csv"
@@ -193,6 +205,8 @@ def main():
     df = pd.DataFrame()
     files = load(path)
     for index, file in enumerate(files):
+        if index >= limit:
+            break
         nodes, edges, time, opt_count, oracle_count = process_file(
             join(path, file))
         row = {

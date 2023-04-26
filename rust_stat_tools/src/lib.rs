@@ -5,12 +5,12 @@ use std::{
 };
 
 #[pyfunction]
-fn num_subsinks(nodes: Vec<(u16, Vec<u16>, i32)>, edges: Vec<(u16, u16, u32)>) -> usize {
+fn num_subsinks(nodes: Vec<(u32, Vec<u32>, i32)>, edges: Vec<(u32, u32, u32)>) -> usize {
     subsinks(&nodes, &edges).len()
 }
 
 #[pyfunction]
-fn num_sinks(nodes: Vec<(u16, Vec<u16>, i32)>, edges: Vec<(u16, u16, u32)>) -> usize {
+fn num_sinks(nodes: Vec<(u32, Vec<u32>, i32)>, edges: Vec<(u32, u32, u32)>) -> usize {
     let thread_count: usize = available_parallelism().unwrap().get();
     let sinks = Mutex::new(vec![]);
 
@@ -29,7 +29,7 @@ fn num_sinks(nodes: Vec<(u16, Vec<u16>, i32)>, edges: Vec<(u16, u16, u32)>) -> u
     return sinks.into_inner().unwrap().len();
 }
 
-fn is_sink(current_node: &(u16, Vec<u16>, i32), edges: &Vec<(u16, u16, u32)>) -> bool {
+fn is_sink(current_node: &(u32, Vec<u32>, i32), edges: &Vec<(u32, u32, u32)>) -> bool {
     let (id, _perm, _path_len) = current_node;
     // Count outgoing edges of this node
 
@@ -45,7 +45,7 @@ fn is_sink(current_node: &(u16, Vec<u16>, i32), edges: &Vec<(u16, u16, u32)>) ->
 }
 
 #[pyfunction]
-fn num_sources(nodes: Vec<(u16, Vec<u16>, i32)>, edges: Vec<(u16, u16, u32)>) -> usize {
+fn num_sources(nodes: Vec<(u32, Vec<u32>, i32)>, edges: Vec<(u32, u32, u32)>) -> usize {
     let thread_count: usize = available_parallelism().unwrap().get();
     let sinks = Mutex::new(vec![]);
 
@@ -64,7 +64,7 @@ fn num_sources(nodes: Vec<(u16, Vec<u16>, i32)>, edges: Vec<(u16, u16, u32)>) ->
     return sinks.into_inner().unwrap().len();
 }
 
-fn is_source(current_node: &(u16, Vec<u16>, i32), edges: &Vec<(u16, u16, u32)>) -> bool {
+fn is_source(current_node: &(u32, Vec<u32>, i32), edges: &Vec<(u32, u32, u32)>) -> bool {
     let (id, _perm, _path_len) = current_node;
     // Count incoming edges of this node
 
@@ -79,7 +79,7 @@ fn is_source(current_node: &(u16, Vec<u16>, i32), edges: &Vec<(u16, u16, u32)>) 
     counter == 0
 }
 
-fn subsinks(nodes: &Vec<(u16, Vec<u16>, i32)>, edges: &Vec<(u16, u16, u32)>) -> Vec<u16> {
+fn subsinks(nodes: &Vec<(u32, Vec<u32>, i32)>, edges: &Vec<(u32, u32, u32)>) -> Vec<u32> {
     let thread_count: usize = available_parallelism().unwrap().get();
     let subsinks = Mutex::new(vec![]);
 
@@ -99,9 +99,9 @@ fn subsinks(nodes: &Vec<(u16, Vec<u16>, i32)>, edges: &Vec<(u16, u16, u32)>) -> 
 }
 
 fn is_subsink(
-    current_node: &(u16, Vec<u16>, i32),
-    nodes: &Vec<(u16, Vec<u16>, i32)>,
-    edges: &Vec<(u16, u16, u32)>,
+    current_node: &(u32, Vec<u32>, i32),
+    nodes: &Vec<(u32, Vec<u32>, i32)>,
+    edges: &Vec<(u32, u32, u32)>,
 ) -> bool {
     let (id, _perm, path_len) = current_node;
     //Find all outgoing edges of this node
