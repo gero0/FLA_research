@@ -78,7 +78,7 @@ fn main() {
 
     let file = parse_intermediate_format(cli.input_file.as_str()).unwrap();
 
-    println!("{:?}", file);
+    // println!("{:?}", file);
 
     match cli.algorithm {
         Commands::Snowball {
@@ -204,30 +204,6 @@ fn sample_snowball(
         comment,
         seed,
     );
-
-    // let mut time_ms = 0;
-
-    // print_progress_bar(i + 1, iters, PBAR_W);
-
-    // let start = Instant::now();
-    // sampler.sample();
-    // time_ms += start.elapsed().as_millis();
-
-    // let (nodes, edges) = sampler.get_samples();
-    // save_sampling_results(
-    //     sampler.get_hc_calls(),
-    //     sampler.get_oracle_calls(),
-    //     nodes,
-    //     edges,
-    //     time_ms,
-    //     output_dir,
-    //     i,
-    //     &[],
-    //     &format!(
-    //         "walk_len:{} n_edges:{} depth:{} D: {} iters:{} file:{}",
-    //         walk_len, n_edges, depth, mut_d, iters, file.name
-    //     ),
-    // )
 
     sampler.sample();
 }
