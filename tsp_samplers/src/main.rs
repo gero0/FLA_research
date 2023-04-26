@@ -46,7 +46,8 @@ enum Commands {
 }
 
 fn save_sampling_results(
-    sampler: &impl SamplingAlg,
+    hc_calls: u64,
+    oracle_calls: u64,
     nodes: &NodeMap,
     edges: &EdgeMap,
     time_ms: u128,
@@ -58,14 +59,11 @@ fn save_sampling_results(
     let _ = std::fs::create_dir(&dirname);
     let path = format!("{}/samples_{}.json", &dirname, i);
 
-    let hc_c = sampler.get_hc_calls();
-    let o_c = sampler.get_oracle_calls();
-
     save_json(
         nodes,
         edges,
-        hc_c,
-        o_c,
+        hc_calls,
+        oracle_calls,
         time_ms,
         comment,
         addl_fields,
@@ -128,7 +126,8 @@ fn sample_exhaustive(file: TspFile, output_dir: &str) {
 
     let (nodes, edges) = sampler.get_samples();
     save_sampling_results(
-        &sampler,
+        sampler.get_hc_calls(),
+        sampler.get_oracle_calls(),
         nodes,
         edges,
         time_ms,
@@ -159,7 +158,8 @@ fn sample_tp(
         time_ms += start.elapsed().as_millis();
         let (nodes, edges) = sampler.get_samples();
         save_sampling_results(
-            &sampler,
+            sampler.get_hc_calls(),
+            sampler.get_oracle_calls(),
             &nodes,
             &edges,
             time_ms,
@@ -205,7 +205,8 @@ fn sample_snowball(
 
         let (nodes, edges) = sampler.get_samples();
         save_sampling_results(
-            &sampler,
+            sampler.get_hc_calls(),
+            sampler.get_oracle_calls(),
             nodes,
             edges,
             time_ms,

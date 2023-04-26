@@ -176,7 +176,7 @@ impl SamplingAlg for TPSampling {
         self.hc_counter.load(Ordering::Relaxed)
     }
 
-    fn get_oracle_calls(&self) -> u128 {
-        self.oracle_counter.load(Ordering::Relaxed) as u128
+    fn get_oracle_calls(&self) -> u64 {
+        self.oracle_counter.load(Ordering::Relaxed)
     }
 }

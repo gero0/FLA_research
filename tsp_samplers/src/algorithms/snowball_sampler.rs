@@ -1,4 +1,4 @@
-use crate::helpers::{mutate_2exchange, random_solution};
+use crate::{helpers::{mutate_2exchange, random_solution}, save_sampling_results};
 use rand::{distributions::Uniform, prelude::Distribution, RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -18,7 +18,7 @@ pub struct SnowballSampling {
     edges: EdgeMap,
     walk_visited: FxHashSet<u32>,
     hc_counter: u64,
-    oracle_counter: u128,
+    oracle_counter: u64,
     current_lo: Option<Vec<u32>>,
 }
 
@@ -175,7 +175,7 @@ impl SamplingAlg for SnowballSampling {
         self.hc_counter
     }
 
-    fn get_oracle_calls(&self) -> u128 {
+    fn get_oracle_calls(&self) -> u64 {
         self.oracle_counter
     }
 }

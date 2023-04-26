@@ -12,7 +12,7 @@ pub fn save_json(
     nodes: &NodeMap,
     edges: &EdgeMap,
     hc_count: u64,
-    oracle_count: u128,
+    oracle_count: u64,
     time_ms: u128,
     comment : &str,
     addl_fields: &[(&str, JsonField)],

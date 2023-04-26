@@ -18,7 +18,7 @@ pub struct ExhaustiveSampling {
     edges: EdgeMap,
     last_node_id: u32,
     hc_counter: u64,
-    oracle_counter: u128,
+    oracle_counter: u64,
 }
 
 impl ExhaustiveSampling {
@@ -99,7 +99,7 @@ impl SamplingAlg for ExhaustiveSampling {
         self.hc_counter
     }
 
-    fn get_oracle_calls(&self) -> u128 {
+    fn get_oracle_calls(&self) -> u64 {
         self.oracle_counter
     }
 }
