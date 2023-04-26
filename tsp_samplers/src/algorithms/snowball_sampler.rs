@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use crate::{
     helpers::{mutate_2exchange, random_solution},
-    save_sampling_results, print_progress_bar, PBAR_W,
+    print_progress_bar, save_sampling_results, PBAR_W,
 };
 use rand::{distributions::Uniform, prelude::Distribution, RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
@@ -105,7 +105,6 @@ impl SnowballSampling {
     }
 
     pub fn sample(&mut self) {
-        
         self.last_instant = Instant::now();
 
         if self.current_lo.is_none() {
@@ -134,6 +133,7 @@ impl SnowballSampling {
             self.current_lo = Some(new_lo);
         }
 
+        self.time_ms += self.last_instant.elapsed().as_millis();
         save_sampling_results(
             self.hc_counter,
             self.oracle_counter,
