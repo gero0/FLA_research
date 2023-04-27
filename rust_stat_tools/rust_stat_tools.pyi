@@ -17,3 +17,9 @@ Calculates number of sources (nodes with no outgoing edges)
 """
 def num_sources(nodes: List[Tuple[int, List[int], int]], edges: List[Tuple[int, int, int]]) -> int:
     ...
+
+"""
+Calculates average self-loop weight of the graph
+"""
+def avg_loop_weight(edges: List[Tuple[int, int, int]]) -> float:
+    ...

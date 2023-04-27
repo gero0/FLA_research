@@ -5,6 +5,14 @@ use std::{
 };
 
 #[pyfunction]
+fn avg_loop_weight(edges: Vec<(u32, u32, u32)>) -> f64 {
+    let loops = edges.iter().filter(|&e| e.0 == e.1);
+    let weights : Vec<_> = loops.map(|&e| e.2).collect();
+    let weight_sum: u32 = weights.iter().sum();
+    return weight_sum as f64 / weights.len() as f64;
+}
+
+#[pyfunction]
 fn num_subsinks(nodes: Vec<(u32, Vec<u32>, i32)>, edges: Vec<(u32, u32, u32)>) -> usize {
     subsinks(&nodes, &edges).len()
 }
@@ -142,5 +150,6 @@ fn rust_stat_tools(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(num_subsinks, m)?)?;
     m.add_function(wrap_pyfunction!(num_sinks, m)?)?;
     m.add_function(wrap_pyfunction!(num_sources, m)?)?;
+    m.add_function(wrap_pyfunction!(avg_loop_weight, m)?)?;
     Ok(())
 }

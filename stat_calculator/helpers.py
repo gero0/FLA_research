@@ -4,7 +4,7 @@ all_stats = [
     "avg_path_len", "cliques_num", "maximal_cliques_num",
     "largest_clique_size", "motifs_randesu_no", "reciprocity", "funnels",
     "funnels_filtered", "avg_fitness", "out_degree", "in_degree",
-    "paths_to_go", "strength"
+    "paths_to_go", "strength", "avg_loop_weight"
 ]
 
 

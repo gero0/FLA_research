@@ -30,6 +30,9 @@ def source_count(nodes, edges):
     edges_t = [tuple(x) for x in edges]
     return rst.num_sources(nodes_t, edges_t)
 
+def avg_loop_weight(nodes, edges):
+    edges_t = [tuple(x) for x in edges]
+    return rst.avg_loop_weight(edges_t)
 
 def distLO(nodes, edges, best_node):
     best_id = best_node[0]

@@ -73,12 +73,12 @@ def calculate_graph_stats(nodes, edges, stats, best_node):
             'max_funnel_size_f'], mfsf, results[
                 'rel_go_funnel_size'] = find_funnels(g, True, best_node)
 
-    if "out_degree":
+    if "out_degree" in stats:
         d = g.degree(mode="out", loops=False)
         results["max_out_degree"] = np.max(d, initial=0.0)
         results["avg_out_degree"] = np.mean(d)
 
-    if "in_degree":
+    if "in_degree" in stats:
         d = g.degree(mode="in", loops=False)
         results["max_in_degree"] = np.max(d, initial=0.0)
         results["avg_in_degree"] = np.mean(d)
@@ -159,6 +159,9 @@ def calculate_stats(nodes, edges, stats):
 
     if "conrel" in stats:
         results["conrel"] = conrel(nodes, edges, best_node)
+
+    if "avg_loop_weight" in stats:
+        results["avg_loop_weight"] = avg_loop_weight(nodes, edges)
 
     return results | graph_results
 
