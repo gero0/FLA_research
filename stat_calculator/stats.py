@@ -87,9 +87,9 @@ def find_funnels(g, filter, best_node):
     sources = []
     sinks = []
     for v in g.vs:
-        if v.degree(mode="in") == 0:
+        if v.degree(mode="in", loops=False) == 0:
             sources.append(v.index)
-        if (v.degree(mode="out") == 0):
+        if (v.degree(mode="out", loops=False) == 0):
             sinks.append(v.index)
             if (v.degree(mode="in") == 0):
                 isolated.append(v.index)
@@ -113,5 +113,5 @@ def find_funnels(g, filter, best_node):
         rel_go_funnel_size = go_funnel_size / max(funnel_sizes)
         mean_fs = sum(funnel_sizes) / len(funnel_sizes)
 
-    return (len(funnel_sizes), mean_fs, np.max(funnel_sizes, initial=0.0),
+    return (len(sinks), len(sources), len(funnel_sizes), mean_fs, np.max(funnel_sizes, initial=0.0),
             np.min(funnel_sizes, initial=0.0), rel_go_funnel_size)

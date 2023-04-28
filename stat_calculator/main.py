@@ -56,22 +56,23 @@ def calculate_graph_stats(nodes, edges, stats, best_node):
         results['avg_go_path_len'] = np.mean(path_lens)
         results['max_go_path_len'] = np.max(path_lens, initial=0.0)
 
-    if "strength" in stats:
-        in_strength = g.strength(mode="in", loops=False)
-        out_strength = g.strength(mode="out", loops=False)
-        results['avg_in_strength'] = np.mean(in_strength)
-        results['max_in_strength'] = np.max(in_strength, initial=0.0)
-        results['avg_out_strength'] = np.mean(out_strength)
-        results['max_out_strength'] = np.max(out_strength, initial=0.0)
+    # print("Strength-------------------------------")
+    # if "strength" in stats:
+    #     in_strength = g.strength(mode="in", loops=False)
+    #     out_strength = g.strength(mode="out", loops=False)
+    #     results['avg_in_strength'] = np.mean(in_strength)
+    #     results['max_in_strength'] = np.max(in_strength, initial=0.0)
+    #     results['avg_out_strength'] = np.mean(out_strength)
+    #     results['max_out_strength'] = np.max(out_strength, initial=0.0)
 
     if "funnels" in stats:
-        results['funnel_num'], results['mean_funnel_size'], results[
+        results['num_sinks'], results['num_sources'], results['funnel_num'], results['mean_funnel_size'], results[
             'max_funnel_size'], mfs, x = find_funnels(g, False, best_node)
 
-    if "funnels_filtered" in stats:
-        results['funnel_num_f'], results['mean_funnel_size_f'], results[
-            'max_funnel_size_f'], mfsf, results[
-                'rel_go_funnel_size'] = find_funnels(g, True, best_node)
+    # if "funnels_filtered" in stats:
+    #     results['funnel_num_f'], results['mean_funnel_size_f'], results[
+    #         'max_funnel_size_f'], mfsf, results[
+    #             'rel_go_funnel_size'] = find_funnels(g, True, best_node)
 
     if "out_degree" in stats:
         d = g.degree(mode="out", loops=False)
@@ -122,8 +123,9 @@ def calculate_graph_stats(nodes, edges, stats, best_node):
     if "largest_clique_size" in stats:
         results["largest_clique_size"] = len(g.largest_cliques()[0])
 
-    if "motifs_randesu_no" in stats:
-        results["motifs_randesu_no"] = g.motifs_randesu_no()
+    # print("MOTIFS -------------------------------")
+    # if "motifs_randesu_no" in stats:
+    #     results["motifs_randesu_no"] = g.motifs_randesu_no()
 
     if "reciprocity" in stats:
         results["reciprocity"] = g.reciprocity()
@@ -142,11 +144,13 @@ def calculate_stats(nodes, edges, stats):
     if "num_subsinks" in stats:
         results["num_subsinks"] = subsink_count(nodes, edges)
 
-    if "num_sinks" in stats:
-        results["num_sinks"] = sink_count(nodes, edges)
+    # print("SINKS-------------------------------")
+    # if "num_sinks" in stats:
+    #     results["num_sinks"] = sink_count(nodes, edges)
 
-    if "num_sources" in stats:
-        results["num_sources"] = source_count(nodes, edges)
+    # print("SOURCES-------------------------------")
+    # if "num_sources" in stats:
+    #     results["num_sources"] = source_count(nodes, edges)
 
     if "edge_to_node" in stats:
         results["edge_to_node"] = e2n_ratio(nodes, edges)
@@ -223,7 +227,7 @@ def main():
 
     df.to_csv(output, sep=";")
     corr = df.corr()
-    corr.to_csv("corr_" + output, sep=";")
+    corr.to_csv(output.replace(".csv", "_corr.csv"), sep=";")
 
 
 if __name__ == "__main__":
