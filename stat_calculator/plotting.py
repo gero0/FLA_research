@@ -67,7 +67,7 @@ def main():
 
     for stat in df.columns[3:]:
         try:
-            df.plot(backend="matplotlib", x="time_ms", y=stat)
+            df.plot(backend="matplotlib", x="node_count", y=stat)
             plt.savefig(os.path.join(output, stat))
         except:
             print(f"Stat {stat} not found in input dataframe")

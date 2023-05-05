@@ -28,7 +28,11 @@ def process_file(path):
 
         edges = f["edges"]
 
-        return (nodes, edges, f["time_ms"], f["opt_count"], f["oracle_count"])
+        try:
+            missed = f["missed"]
+        except:
+            missed = None
+        return (nodes, edges, f["time_ms"], f["opt_count"], f["oracle_count"], missed)
 
 
 def calculate_graph_stats(nodes, edges, stats, best_node):
@@ -214,15 +218,19 @@ def main():
     for index, file in enumerate(files):
         if index >= limit:
             break
-        nodes, edges, time, opt_count, oracle_count = process_file(
+        nodes, edges, time, opt_count, oracle_count, missed = process_file(
             join(path, file))
+        
         row = {
             "time_ms": time,
             "opt_count": opt_count,
-            "oracle_count": oracle_count
+            "oracle_count": oracle_count,
         }
+
         results = calculate_stats(nodes, edges, stats)
         row = row | results
+        if missed is not None:
+            row = row | {"missed" : missed}
         df = pd.concat([df, pd.DataFrame([row], index=[index])])
 
     df.to_csv(output, sep=";")
