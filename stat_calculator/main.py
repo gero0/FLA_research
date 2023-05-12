@@ -52,6 +52,7 @@ def calculate_graph_stats(nodes, edges, stats, best_node):
               directed=True)
 
     if "paths_to_go" in stats:
+        print("-----------Paths to g.o.-------------")
         paths = g.get_shortest_paths(best_node[0], weights=None, mode="in")
         existing_paths = [p for p in paths if len(p) > 1]
         path_lens = [len(p) - 1 for p in existing_paths]
@@ -70,6 +71,7 @@ def calculate_graph_stats(nodes, edges, stats, best_node):
     #     results['max_out_strength'] = np.max(out_strength, initial=0.0)
 
     if "funnels" in stats:
+        print("-----------Funnels.-------------")
         results['num_sinks'], results['num_sources'], results['funnel_num'], results['mean_funnel_size'], results[
             'max_funnel_size'], mfs, x = find_funnels(g, False, best_node)
 
@@ -79,25 +81,31 @@ def calculate_graph_stats(nodes, edges, stats, best_node):
     #             'rel_go_funnel_size'] = find_funnels(g, True, best_node)
 
     if "out_degree" in stats:
+        print("-----------Out Degree.-------------")
         d = g.degree(mode="out", loops=False)
         results["max_out_degree"] = np.max(d, initial=0.0)
         results["avg_out_degree"] = np.mean(d)
 
     if "in_degree" in stats:
+        print("-----------In Degree.-------------")
         d = g.degree(mode="in", loops=False)
         results["max_in_degree"] = np.max(d, initial=0.0)
         results["avg_in_degree"] = np.mean(d)
 
     if "assortativity_deg" in stats:
+        print("-----------Assortativity-------------")
         results["assortativity_deg"] = g.assortativity_degree()
 
     if "clustering_coeff" in stats:
+        print("-----------Clustering_coeff-------------")
         results["clustering_coeff"] = g.transitivity_undirected()
 
     if "density" in stats:
+        print("-----------Density.-------------")
         results["density"] = g.density()
 
     if "components" in stats:
+        print("-----------Components.-------------")
         components = g.components(mode="weak")
         if len(components) > 0:
             comp_sizes = components.sizes()
@@ -115,23 +123,26 @@ def calculate_graph_stats(nodes, edges, stats, best_node):
             results["largest_cc_radius"] = 0
 
     if "avg_path_len" in stats:
+        print("-----------Avg path len-------------")
         results["avg_path_len"] = g.average_path_length()
 
-    if "cliques_num" in stats:
-        cliques = g.cliques()
-        results["cliques_num"] = len(cliques)
+    # if "cliques_num" in stats:
+    #     cliques = g.cliques()
+    #     results["cliques_num"] = len(cliques)
 
-    if "maximal_cliques_num" in stats:
-        results["maximal_cliques_num"] = len(g.maximal_cliques())
+    # if "maximal_cliques_num" in stats:
+    #     results["maximal_cliques_num"] = len(g.maximal_cliques())
 
     if "largest_clique_size" in stats:
-        results["largest_clique_size"] = len(g.largest_cliques()[0])
+        print("-----------largest clique size.-----------")
+        results["largest_clique_size"] = g.clique_number()
 
     # print("MOTIFS -------------------------------")
     # if "motifs_randesu_no" in stats:
     #     results["motifs_randesu_no"] = g.motifs_randesu_no()
 
     if "reciprocity" in stats:
+        print("-----------Reciprocity.-------------")
         results["reciprocity"] = g.reciprocity()
 
     return results
@@ -146,6 +157,7 @@ def calculate_stats(nodes, edges, stats):
     graph_results = calculate_graph_stats(nodes, edges, stats, best_node)
 
     if "num_subsinks" in stats:
+        print("-----------Num. Subsinks-------------")
         results["num_subsinks"] = subsink_count(nodes, edges)
 
     # print("SINKS-------------------------------")
@@ -157,18 +169,23 @@ def calculate_stats(nodes, edges, stats):
     #     results["num_sources"] = source_count(nodes, edges)
 
     if "edge_to_node" in stats:
+        print("-----------E2N.-------------")
         results["edge_to_node"] = e2n_ratio(nodes, edges)
 
     if "avg_fitness" in stats:
+        print("-----------Avg fitness-------------")
         results["avg_fitness"] = avg_fitness(nodes)
 
     if "distLO" in stats:
+        print("-----------distLO.-------------")
         results["distLO"] = distLO(nodes, edges, best_node)
 
     if "conrel" in stats:
+        print("-----------conrel.-------------")
         results["conrel"] = conrel(nodes, edges, best_node)
 
     if "avg_loop_weight" in stats:
+        print("-----------avg_loop_weight-------------")
         results["avg_loop_weight"] = avg_loop_weight(nodes, edges)
 
     return results | graph_results
@@ -216,6 +233,7 @@ def main():
     df = pd.DataFrame()
     files = load(path)
     for index, file in enumerate(files):
+        print(f"NOW PROCESSING: {file}===================")
         if index >= limit:
             break
         nodes, edges, time, opt_count, oracle_count, missed = process_file(

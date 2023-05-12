@@ -1,6 +1,4 @@
-import igraph
 import numpy as np
-from matplotlib import pyplot as plt
 import rust_stat_tools as rst
 from copy import deepcopy
 
