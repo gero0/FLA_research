@@ -114,8 +114,8 @@ pub fn inrange_2change(perm1: &[u32], perm2: &[u32], mut_d: usize) -> bool {
 fn two_exchange_allperms(perm: &[u32]) -> Vec<Vec<u32>> {
     let mut perms = vec![];
     let n = perm.len();
-    for a in 0..(n - 2) {
-        for b in (a + 2)..n {
+    for a in 0..(n - 1) {
+        for b in (a + 1)..n {
             let new_perm = two_exchange(perm, a, b);
             perms.push(new_perm);
         }

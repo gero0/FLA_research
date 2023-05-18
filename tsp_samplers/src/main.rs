@@ -5,7 +5,7 @@ mod ser;
 use crate::ser::save_json;
 use algorithms::{
     exhaustive_sampler::ExhaustiveSampling, snowball_sampler::SnowballSampling, two_opt_besti,
-    EdgeMap, NodeMap, SamplingAlg, TPSampling,
+    EdgeMap, NodeMap, SamplingAlg, TPSampling, two_opt_firsti,
 };
 use chrono::Timelike;
 use clap::{Parser, Subcommand};
@@ -122,7 +122,7 @@ fn main() {
 }
 
 fn sample_exhaustive(file: TspFile, output_dir: &str) {
-    let mut sampler = ExhaustiveSampling::new(file.distance_matrix, 2, two_opt_besti);
+    let mut sampler = ExhaustiveSampling::new(file.distance_matrix, 2, two_opt_firsti);
     let start = Instant::now();
     sampler.sample();
     let time_ms = start.elapsed().as_millis();
