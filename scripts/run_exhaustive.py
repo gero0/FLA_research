@@ -31,4 +31,4 @@ for file in files:
     name = dir.split('/')[-1]
     output = OUT_DIR + name + "_exhaustive"
     print("Now running :", name)
-    subprocess.run(["./tsp_samplers/target/release/tsp_samplers", file, "0", output, "exhaustive"])
+    subprocess.run(["./tsp_samplers/target/release/tsp_samplers", file, output, "exhaustive"])
